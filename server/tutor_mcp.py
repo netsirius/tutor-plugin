@@ -464,15 +464,21 @@ def save_curriculum(curriculum_data: str) -> dict:
 
     save_json(tutor_path / "curriculum.json", curriculum)
 
+    # Count exercises - handle both integer counts and lists of exercises
+    total_exercises = 0
+    for m in curriculum["modules"]:
+        exercises = m.get("exercises", 0)
+        if isinstance(exercises, int):
+            total_exercises += exercises
+        elif isinstance(exercises, list):
+            total_exercises += len(exercises)
+
     return {
         "success": True,
         "title": curriculum.get("title", "Untitled"),
         "language": curriculum.get("language", "unknown"),
         "modules_count": len(curriculum["modules"]),
-        "total_exercises": sum(
-            len(m.get("exercises", []))
-            for m in curriculum["modules"]
-        )
+        "total_exercises": total_exercises
     }
 
 
