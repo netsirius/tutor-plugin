@@ -8,8 +8,21 @@
   "homepage": "https://github.com/hsantos/tutor-plugin",
   "license": "MIT",
   "keywords": ["learning", "tutor", "rust", "programming", "education", "exercises"],
-  "agents": "./agents/",
-  "skills": "./skills/",
-  "commands": "./commands/",
+  "agents": [
+    "./agents/tutor.md",
+    "./agents/evaluator.md",
+    "./agents/practice-coach.md"
+  ],
+  "skills": [
+    "./skills/learning-tracker"
+  ],
+  "commands": [
+    "./commands/init.md",
+    "./commands/learn.md",
+    "./commands/exercise.md",
+    "./commands/progress.md",
+    "./commands/review.md",
+    "./commands/curriculum.md"
+  ],
   "mcpServers": "./.mcp.json"
 }
