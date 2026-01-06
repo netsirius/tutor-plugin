@@ -1,82 +1,93 @@
 ---
-description: Inicializar un nuevo proyecto de tutoría. Usa /tutor:init para configurar el directorio actual como un espacio de aprendizaje con seguimiento de progreso.
+description: Initialize a new tutoring project. Use /tutor:init to configure the current directory as a learning space with progress tracking.
 allowed-tools: Read, Write, Bash
 ---
 
-# Comando: Init
+# Command: Init
 
-El usuario quiere inicializar un nuevo proyecto de tutoría en el directorio actual.
+The user wants to initialize a new tutoring project in the current directory.
 
-## Tu Tarea
+## Your Task
 
-1. **Verificar si ya existe configuración**:
-   - Si existe `.tutor/`, preguntar si desea reiniciar o continuar
-   - Advertir que reiniciar perderá el progreso actual
+1. **Check if configuration already exists**:
+   - If `.tutor/` exists, ask if they want to reset or continue
+   - Warn that resetting will lose current progress
 
-2. **Recopilar información**:
-   Pregunta al usuario:
+2. **Gather information**:
+   Ask the user:
 
-   a) **Lenguaje a aprender**:
+   a) **Preferred learning language** (IMPORTANT - ask this first):
    ```
-   ¿Qué lenguaje quieres aprender?
+   What language would you like to learn in?
+   - English
+   - Spanish (Español)
+   - Other (specify)
+   ```
+
+   **Note**: This setting determines the language used for all lessons, exercises, explanations, and feedback throughout the learning experience.
+
+   b) **Programming language to learn**:
+   ```
+   What programming language do you want to learn?
    - Rust
    - Python
    - TypeScript
    - Go
-   - Otro (especificar)
+   - Other (specify)
    ```
 
-   b) **Nivel actual**:
+   c) **Current level**:
    ```
-   ¿Cuál es tu nivel actual?
-   - Total principiante (nunca he programado)
-   - Principiante (sé programar en otro lenguaje)
-   - Intermedio (algo de experiencia con este lenguaje)
-   - Avanzado (quiero profundizar conocimientos)
+   What is your current level?
+   - Total beginner (never programmed before)
+   - Beginner (know how to program in another language)
+   - Intermediate (some experience with this language)
+   - Advanced (want to deepen knowledge)
    ```
 
-   c) **Objetivos** (opcional):
+   d) **Goals** (optional):
    ```
-   ¿Qué quieres lograr? (selecciona uno o más)
-   - Aprendizaje general
-   - Desarrollo web (backend)
+   What do you want to achieve? (select one or more)
+   - General learning
+   - Web development (backend)
    - CLI tools
-   - Sistemas/embedded
-   - Contribuir a open source
-   - Preparación para entrevistas
+   - Systems/embedded
+   - Contribute to open source
+   - Interview preparation
    ```
 
-   d) **Curriculum**:
+   e) **Curriculum**:
    ```
-   ¿Cómo quieres estructurar tu aprendizaje?
-   - Generar curriculum automático (recomendado)
-   - Tengo un plan de estudios que quiero seguir
-   - Solo quiero practicar sin estructura fija
+   How do you want to structure your learning?
+   - Generate automatic curriculum (recommended)
+   - I have a study plan I want to follow
+   - Just want to practice without fixed structure
    ```
 
-3. **Crear estructura de directorios**:
+3. **Create directory structure**:
 
    ```
    .tutor/
-   ├── config.json       # Configuración del curso
-   ├── progress.json     # Progreso (inicialmente vacío)
-   ├── curriculum.json   # Plan de estudios (si aplica)
-   └── sessions/         # Directorio para sesiones
+   ├── config.json       # Course configuration
+   ├── progress.json     # Progress (initially empty)
+   ├── curriculum.json   # Study plan (if applicable)
+   └── sessions/         # Directory for sessions
 
-   lessons/              # Donde irán las lecciones
+   lessons/              # Where lessons will go
 
-   projects/             # Donde irán los mini-proyectos
+   projects/             # Where mini-projects will go
    ```
 
-4. **Crear config.json**:
+4. **Create config.json**:
 
    ```json
    {
-     "language": "[lenguaje elegido]",
-     "student_name": "[nombre si lo proporciona]",
-     "level": "[nivel elegido]",
-     "started_at": "[fecha actual ISO]",
-     "goals": ["[objetivos seleccionados]"],
+     "learning_language": "[chosen language: en|es|etc]",
+     "programming_language": "[chosen programming language]",
+     "student_name": "[name if provided]",
+     "level": "[chosen level]",
+     "started_at": "[current ISO date]",
+     "goals": ["[selected goals]"],
      "curriculum_source": "generated|custom|none",
      "preferences": {
        "explanation_style": "detailed",
@@ -86,7 +97,7 @@ El usuario quiere inicializar un nuevo proyecto de tutoría en el directorio act
    }
    ```
 
-5. **Crear progress.json inicial**:
+5. **Create initial progress.json**:
 
    ```json
    {
@@ -104,12 +115,34 @@ El usuario quiere inicializar un nuevo proyecto de tutoría en el directorio act
    }
    ```
 
-6. **Si eligió generar curriculum**:
-   - Llama a `/tutor:curriculum generar [lenguaje]` internamente
-   - O genera un curriculum básico directamente
+6. **If they chose to generate curriculum**:
+   - Call `/tutor:curriculum generate [language]` internally
+   - Or generate a basic curriculum directly
 
-7. **Mensaje de bienvenida**:
+7. **Welcome message** (in the user's chosen learning language):
 
+   For English:
+   ```
+   🎓 Tutoring project initialized!
+
+   📁 Structure created:
+   ├── .tutor/          → Your configuration and progress
+   ├── lessons/         → Lessons will appear here
+   └── projects/        → Mini-projects go here
+
+   📚 Language: Rust
+   📊 Level: Beginner
+   🎯 Goals: CLI tools, Open source
+
+   Ready to start? Use:
+   • /tutor:learn         → Start first lesson
+   • /tutor:curriculum    → View/adjust study plan
+   • /tutor:progress      → View your progress (empty for now)
+
+   Good luck on your learning journey! 🚀
+   ```
+
+   For Spanish:
    ```
    🎓 ¡Proyecto de tutoría inicializado!
 
@@ -130,29 +163,30 @@ El usuario quiere inicializar un nuevo proyecto de tutoría en el directorio act
    ¡Buena suerte en tu viaje de aprendizaje! 🚀
    ```
 
-## Reiniciar Proyecto Existente
+## Reset Existing Project
 
-Si el usuario tiene un `.tutor/` existente:
+If the user has an existing `.tutor/`:
 
 ```
-⚠️ Ya existe un proyecto de tutoría en este directorio.
+⚠️ A tutoring project already exists in this directory.
 
-Opciones:
-1. Continuar con el curso actual
-2. Reiniciar desde cero (perderás tu progreso)
-3. Crear backup y reiniciar
+Options:
+1. Continue with current course
+2. Reset from scratch (you will lose your progress)
+3. Create backup and reset
 
-¿Qué prefieres?
+What would you prefer?
 ```
 
-Si elige backup:
-- Crear `.tutor.backup.[fecha]/`
-- Copiar todo `.tutor/` ahí
-- Luego reiniciar
+If they choose backup:
+- Create `.tutor.backup.[date]/`
+- Copy all `.tutor/` there
+- Then reset
 
-## Notas
+## Notes
 
-- El comando debe ser interactivo pero no tedioso
-- Si el usuario da respuestas cortas, inferir el resto
-- Siempre crear la estructura mínima necesaria
-- El curriculum puede añadirse después si lo prefiere
+- The command should be interactive but not tedious
+- If the user gives short answers, infer the rest
+- Always create the minimum necessary structure
+- The curriculum can be added later if preferred
+- **IMPORTANT**: The `learning_language` setting determines the language for ALL content generated by the tutor (lessons, exercises, feedback, progress reports)

@@ -1,6 +1,6 @@
 {
   "name": "tutor-plugins",
-  "description": "Plugin marketplace para tutores de programación con Claude Code",
+  "description": "Plugin marketplace for programming tutors with Claude Code",
   "owner": {
     "name": "netsirius",
     "url": "https://github.com/netsirius"
@@ -9,7 +9,7 @@
     {
       "name": "tutor",
       "source": "./",
-      "description": "Tutor personal adaptativo para aprender lenguajes de programación. Incluye lecciones progresivas, ejercicios interactivos, seguimiento de progreso, y feedback educativo."
+      "description": "Adaptive personal tutor for learning programming languages. Includes progressive lessons, interactive exercises, progress tracking, and educational feedback. Multi-language support."
     }
   ]
 }

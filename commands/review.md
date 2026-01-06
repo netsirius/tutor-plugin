@@ -1,56 +1,62 @@
 ---
-description: Revisar código con feedback educativo. Usa /tutor:review para revisar el archivo actual, o /tutor:review [ruta] para un archivo específico. Proporciona feedback constructivo y sugerencias de mejora.
+description: Review code with educational feedback. Use /tutor:review to review the current file, or /tutor:review [path] for a specific file. Provides constructive feedback and improvement suggestions.
 allowed-tools: Read, Bash, Grep
 ---
 
-# Comando: Review
+# Command: Review
 
-El usuario quiere que revises su código y proporciones feedback educativo.
+The user wants you to review their code and provide educational feedback.
 
-## Tu Tarea
+## Important: Language Adaptation
 
-1. Identifica el archivo a revisar:
-   - Si se proporciona ruta: usar esa
-   - Si no: buscar el ejercicio actual en progreso
-   - Priorizar archivos en `lessons/*/exercises/`
+Before presenting any content, read `.tutor/config.json` and check the `learning_language` field. ALL feedback MUST be presented in the student's chosen language.
 
-2. Lee el código y analiza:
-   - Corrección (¿compila? ¿pasan los tests?)
-   - Estilo (¿es idiomático?)
-   - Eficiencia (¿hay mejoras obvias?)
-   - Manejo de errores (¿es robusto?)
+## Your Task
 
-3. Para Rust, ejecuta:
+1. Identify the file to review:
+   - If a path is provided: use that
+   - If not: find the current exercise in progress
+   - Prioritize files in `lessons/*/exercises/`
+
+2. Read `.tutor/config.json` to get the learning language
+
+3. Read the code and analyze:
+   - Correctness (does it compile? do tests pass?)
+   - Style (is it idiomatic?)
+   - Efficiency (are there obvious improvements?)
+   - Error handling (is it robust?)
+
+4. For Rust, run:
    ```bash
    cargo check 2>&1
    cargo test 2>&1
-   cargo clippy 2>&1  # Si está disponible
+   cargo clippy 2>&1  # If available
    ```
 
-4. Proporciona feedback estructurado y educativo
+5. Provide structured and educational feedback (in the student's language)
 
-## Formato de Respuesta
+## Response Format (English)
 
 ```markdown
-## 📝 Revisión de Código
+## 📝 Code Review
 
-### Archivo: `src/main.rs`
-
----
-
-### ✅ Lo que está bien
-1. **Estructura clara**: El código está bien organizado
-2. **Nombres descriptivos**: `calculate_total` es claro
-3. **Manejo de Option**: Buen uso de `if let`
+### File: `src/main.rs`
 
 ---
 
-### 🔧 Resultado de Compilación
-✅ Compila sin errores
+### ✅ What's Good
+1. **Clear structure**: The code is well organized
+2. **Descriptive names**: `calculate_total` is clear
+3. **Option handling**: Good use of `if let`
+
+---
+
+### 🔧 Compilation Result
+✅ Compiles without errors
 
 ### 🧪 Tests
-- Pasados: 4/5
-- ❌ `test_empty_input`: El test falla porque...
+- Passed: 4/5
+- ❌ `test_empty_input`: The test fails because...
   ```
   expected: Some(0)
   got: None
@@ -58,19 +64,19 @@ El usuario quiere que revises su código y proporciones feedback educativo.
 
 ---
 
-### 💡 Sugerencias de Mejora
+### 💡 Improvement Suggestions
 
-#### 1. Considera usar `match` en lugar de múltiples `if`
-**Línea 15-20**
+#### 1. Consider using `match` instead of multiple `if`
+**Line 15-20**
 
-Tu código actual:
+Your current code:
 ```rust
 if x == 1 { ... }
 else if x == 2 { ... }
 else { ... }
 ```
 
-Versión más idiomática:
+More idiomatic version:
 ```rust
 match x {
     1 => { ... }
@@ -79,64 +85,65 @@ match x {
 }
 ```
 
-**Por qué**: `match` en Rust garantiza exhaustividad y es más claro.
+**Why**: `match` in Rust guarantees exhaustiveness and is clearer.
 
 ---
 
-#### 2. El `clone()` puede evitarse
-**Línea 8**
+#### 2. The `clone()` can be avoided
+**Line 8**
 
 ```rust
-// Actual
+// Current
 let name = user.name.clone();
 
-// Mejor (si solo necesitas leer)
+// Better (if you only need to read)
 let name = &user.name;
 ```
 
-**Por qué**: `clone()` copia la memoria. Si solo lees, una referencia es más eficiente.
+**Why**: `clone()` copies memory. If you're only reading, a reference is more efficient.
 
 ---
 
-### 📊 Evaluación General
+### 📊 Overall Evaluation
 
-| Aspecto | Puntuación |
-|---------|------------|
-| Corrección | ⭐⭐⭐⭐☆ |
-| Estilo | ⭐⭐⭐☆☆ |
-| Eficiencia | ⭐⭐⭐⭐☆ |
+| Aspect | Score |
+|--------|-------|
+| Correctness | ⭐⭐⭐⭐☆ |
+| Style | ⭐⭐⭐☆☆ |
+| Efficiency | ⭐⭐⭐⭐☆ |
 
 ---
 
-### 🎯 Siguiente Paso
-Corrige el test `test_empty_input` manejando el caso de entrada vacía,
-luego revisa las sugerencias de estilo cuando tengas tiempo.
+### 🎯 Next Step
+Fix the `test_empty_input` test by handling the empty input case,
+then review the style suggestions when you have time.
 ```
 
-## Niveles de Revisión
+## Review Levels
 
-Adapta la profundidad según el nivel del estudiante:
+Adapt the depth according to the student's level:
 
-### Principiante
-- Enfócate en: ¿funciona?
-- Evita abrumar con optimizaciones
-- Celebra que compile y pase tests
+### Beginner
+- Focus on: does it work?
+- Avoid overwhelming with optimizations
+- Celebrate that it compiles and passes tests
 
-### Intermedio
-- Añade: estilo idiomático
-- Sugiere mejores patrones
-- Introduce conceptos como borrowing eficiente
+### Intermediate
+- Add: idiomatic style
+- Suggest better patterns
+- Introduce concepts like efficient borrowing
 
-### Avanzado
-- Análisis de complejidad
+### Advanced
+- Complexity analysis
 - Edge cases
-- Concurrencia y thread-safety
-- Sugerencias de clippy avanzadas
+- Concurrency and thread-safety
+- Advanced clippy suggestions
 
-## Recuerda
+## Remember
 
-- **Sé constructivo**: Siempre empieza con lo positivo
-- **Explica el por qué**: No solo qué cambiar, sino por qué
-- **No abrumes**: 3-5 sugerencias máximo por revisión
-- **Prioriza**: Lo más importante primero
-- **Motiva**: El objetivo es que aprenda, no que se sienta mal
+- **Be constructive**: Always start with the positive
+- **Explain the why**: Not just what to change, but why
+- **Don't overwhelm**: 3-5 suggestions maximum per review
+- **Prioritize**: Most important first
+- **Motivate**: The goal is for them to learn, not to feel bad
+- **Use the student's learning language for ALL feedback**

@@ -1,115 +1,76 @@
-# Tutor Plugin para Claude Code
+<p align="center">
+  <img src="https://img.shields.io/badge/Claude_Code-Plugin-blueviolet?style=for-the-badge&logo=anthropic" alt="Claude Code Plugin">
+  <img src="https://img.shields.io/badge/version-1.0.0-blue?style=for-the-badge" alt="Version">
+  <img src="https://img.shields.io/badge/license-MIT-green?style=for-the-badge" alt="License">
+</p>
 
-Un plugin de tutor personal adaptativo para aprender lenguajes de programación con Claude Code.
+<h1 align="center">Tutor Plugin for Claude Code</h1>
 
-## Características
+<p align="center">
+  <strong>An adaptive AI-powered personal tutor for learning programming languages</strong>
+</p>
 
-- **Aprendizaje progresivo**: Lecciones estructuradas desde básico a avanzado
-- **Ejercicios interactivos**: Problemas con tests automáticos y validación
-- **Seguimiento de progreso**: Tracking de módulos, ejercicios, y métricas
-- **Curriculum flexible**: Genera uno automáticamente o importa uno existente (Coursera, libros, etc.)
-- **Feedback educativo**: Revisión de código con explicaciones constructivas
-- **Múltiples agentes especializados**: Tutor, evaluador, y coach de práctica
+<p align="center">
+  Learn Rust, Python, TypeScript, Go and more with personalized lessons,<br>
+  interactive exercises, and real-time feedback — all within Claude Code.
+</p>
 
 ---
 
-## Instalación
+## Why Tutor Plugin?
 
-### Requisitos Previos
+Learning to code is hard. Traditional resources often lack personalization, immediate feedback, and the ability to adapt to your pace. **Tutor Plugin** brings the power of AI directly into your development environment, creating a personalized learning experience that:
 
-- **Claude Code CLI** instalado
-- **Python 3.8+**
-- **Rust** (solo si vas a aprender Rust):
-  ```bash
-  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-  ```
+- **Adapts to your level** — From complete beginner to advanced developer
+- **Provides instant feedback** — Get code reviews and hints in real-time
+- **Tracks your progress** — Visual dashboards show your journey
+- **Speaks your language** — Learn in English, Spanish, or other languages
 
-> **Nota sobre el servidor MCP**: No necesitas iniciarlo manualmente. Claude Code lo inicia automáticamente al cargar el plugin usando el entorno virtual del plugin.
+---
 
-### Método 1: Instalar desde GitHub (Recomendado)
+## Features
 
-#### Paso 1: Añadir el marketplace
+| Feature | Description |
+|---------|-------------|
+| **Progressive Learning** | Structured curriculum from basics to advanced topics |
+| **Interactive Exercises** | Hands-on problems with automated tests and validation |
+| **Smart Progress Tracking** | Track modules, exercises, streaks, and performance metrics |
+| **Flexible Curriculum** | Generate automatically or import from Coursera, books, etc. |
+| **Educational Code Reviews** | Constructive feedback that teaches, not just corrects |
+| **Multi-Language Support** | Learn in your preferred language (EN, ES, and more) |
+| **Three Specialized Agents** | Tutor, Evaluator, and Practice Coach working together |
 
-Abre Claude Code y ejecuta:
+---
 
+## Quick Start
+
+### 1. Install uv (Required)
+
+The MCP server uses [uv](https://docs.astral.sh/uv/) to auto-manage Python dependencies.
+
+```bash
+# macOS/Linux
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Or with Homebrew
+brew install uv
+
+# Windows
+powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
 ```
+
+### 2. Install the Plugin
+
+```bash
+# In Claude Code
 /plugin marketplace add netsirius/tutor-plugin
-```
-
-#### Paso 2: Instalar el plugin
-
-```
 /plugin install tutor@netsirius-tutor-plugin
 ```
 
-#### Paso 3: Configurar el entorno virtual
-
-Después de instalar, crea el entorno virtual para el servidor MCP:
+### 3. Start Learning!
 
 ```bash
-# Navegar al directorio del plugin instalado
-cd ~/.claude/plugins/tutor@netsirius-tutor-plugin
-
-# Crear entorno virtual e instalar dependencias
-python -m venv venv
-./venv/bin/pip install -r server/requirements.txt
-```
-
-#### Paso 4: Verificar
-
-Reinicia Claude Code y ejecuta:
-
-```
-/tutor:progress
-```
-
-### Método 2: Instalación interactiva
-
-```
-/plugin
-```
-
-Esto abre una UI interactiva donde puedes:
-1. Ir a la pestaña **Marketplaces**
-2. Añadir `netsirius/tutor-plugin`
-3. Ir a **Discover** e instalar "tutor"
-
-### Método 3: Desarrollo local
-
-```bash
-# Clonar el repositorio
-git clone https://github.com/netsirius/tutor-plugin.git
-cd tutor-plugin
-
-# Crear entorno virtual e instalar dependencias
-python -m venv venv
-./venv/bin/pip install -r server/requirements.txt
-
-# Ejecutar Claude Code con el plugin
-claude --plugin-dir .
-```
-
----
-
-## Comandos Disponibles
-
-| Comando | Descripción | Ejemplo |
-|---------|-------------|---------|
-| `/tutor:init` | Inicializar proyecto de tutoría | `/tutor:init` |
-| `/tutor:learn [tema]` | Aprender un tema o continuar | `/tutor:learn ownership` |
-| `/tutor:exercise [nivel]` | Obtener ejercicio de práctica | `/tutor:exercise intermedio` |
-| `/tutor:progress` | Ver tu progreso | `/tutor:progress` |
-| `/tutor:review [archivo]` | Revisar código con feedback | `/tutor:review src/main.rs` |
-| `/tutor:curriculum` | Ver/generar/importar curriculum | `/tutor:curriculum generar rust` |
-
----
-
-## Guía Rápida
-
-### 1. Crear espacio de aprendizaje e inicializar
-
-```bash
-mkdir ~/aprendiendo-rust && cd ~/aprendiendo-rust
+mkdir ~/learning-rust && cd ~/learning-rust
 claude
 ```
 
@@ -117,329 +78,234 @@ claude
 /tutor:init
 ```
 
-El tutor preguntará: lenguaje, nivel, objetivos, y tipo de curriculum.
+The tutor will guide you through setup — choosing your language, level, and goals.
 
-### 2. Configurar plan de estudios
+---
 
-**Generar automáticamente:**
-```
-/tutor:curriculum generar rust
-```
+## Commands
 
-**Importar de Coursera/libro:**
-```
-/tutor:curriculum importar
-```
+| Command | Description |
+|---------|-------------|
+| `/tutor:init` | Initialize a new learning project |
+| `/tutor:learn [topic]` | Start or continue a lesson |
+| `/tutor:exercise [level]` | Get a practice exercise (basic/intermediate/advanced/challenge) |
+| `/tutor:progress` | View your learning dashboard |
+| `/tutor:review [file]` | Get educational code review |
+| `/tutor:curriculum` | View, generate, or import study plans |
 
-### 3. Aprender
+---
 
-```
-/tutor:learn              # Continuar donde lo dejaste
-/tutor:learn ownership    # Tema específico
-```
-
-### 4. Practicar
+## How It Works
 
 ```
-/tutor:exercise           # Ejercicio del tema actual
-/tutor:exercise avanzado  # Ejercicio de nivel específico
+┌─────────────────────────────────────────────────────────────────┐
+│                        TUTOR PLUGIN                             │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│   ┌───────────┐    ┌───────────┐    ┌───────────────┐          │
+│   │   TUTOR   │    │ EVALUATOR │    │ PRACTICE COACH│          │
+│   │  (Opus)   │    │ (Sonnet)  │    │   (Sonnet)    │          │
+│   └─────┬─────┘    └─────┬─────┘    └───────┬───────┘          │
+│         │                │                  │                   │
+│         └────────────────┼──────────────────┘                   │
+│                          │                                      │
+│                    ┌─────▼─────┐                                │
+│                    │    MCP    │                                │
+│                    │  Server   │                                │
+│                    └─────┬─────┘                                │
+│                          │                                      │
+│         ┌────────────────┼────────────────┐                     │
+│         │                │                │                     │
+│   ┌─────▼─────┐   ┌──────▼─────┐   ┌─────▼─────┐               │
+│   │ Progress  │   │ Curriculum │   │   Code    │               │
+│   │ Tracking  │   │ Management │   │ Validation│               │
+│   └───────────┘   └────────────┘   └───────────┘               │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
-### 5. Revisar código
+### The Three Agents
 
-```
-/tutor:review src/main.rs
-```
+- **Tutor** — Your main instructor. Explains concepts with analogies, creates lessons, and guides your learning journey.
+- **Evaluator** — Reviews your code, runs tests, and provides constructive feedback tailored to your level.
+- **Practice Coach** — Generates personalized exercises that challenge you just enough to grow.
 
-### 6. Ver progreso
+---
 
-```
-/tutor:progress
+## Daily Workflow
+
+```bash
+# Start your session
+claude
+/tutor:learn                    # Continue where you left off
+
+# Practice what you learned
+/tutor:exercise                 # Get an exercise for current topic
+
+# Get help when stuck
+"I don't understand this error"
+"Give me a hint"
+"Explain ownership another way"
+
+# Review your code
+/tutor:review src/main.rs       # Get educational feedback
+
+# Check your progress
+/tutor:progress                 # See your dashboard
 ```
 
 ---
 
-## Estructura del Proyecto de Aprendizaje
+## Project Structure
 
-Cuando ejecutes `/tutor:init`, se creará:
+When you run `/tutor:init`, this structure is created:
 
 ```
-~/aprendiendo-rust/
+your-learning-project/
 ├── .tutor/
-│   ├── config.json       # Configuración
-│   ├── progress.json     # Tu progreso
-│   ├── curriculum.json   # Plan de estudios
-│   └── sessions/         # Historial
+│   ├── config.json         # Your preferences & settings
+│   ├── progress.json       # Detailed progress data
+│   ├── curriculum.json     # Your study plan
+│   └── sessions/           # Session history
 │
-├── lessons/              # Lecciones generadas
+├── lessons/                # Generated lessons
 │   ├── 01-basics/
 │   │   ├── README.md
 │   │   ├── examples/
 │   │   └── exercises/
-│   │       └── ex01_hello/
-│   │           ├── Cargo.toml
-│   │           └── src/main.rs
 │   └── 02-ownership/
 │
-└── projects/             # Mini-proyectos
+└── projects/               # Mini-projects
 ```
 
 ---
 
-## Flujo de Trabajo Diario
+## Customization
 
-```bash
-# Día 1
-claude
-/tutor:init
-/tutor:curriculum generar rust
-/tutor:learn
+### Learning Preferences
 
-# Días siguientes
-claude
-/tutor:learn                   # Continuar
-/tutor:exercise                # Practicar
-/tutor:review src/main.rs      # Feedback
-/tutor:progress                # Ver progreso
+Edit `.tutor/config.json` in your project:
 
-# Dudas
-"Explícame ownership de otra forma"
-"No entiendo este error"
-"Dame una pista"
+```json
+{
+  "learning_language": "en",
+  "preferences": {
+    "explanation_style": "detailed",
+    "exercise_difficulty": "adaptive",
+    "show_hints": true
+  }
+}
 ```
 
----
+### Agent Models
 
-## Agentes del Plugin
-
-| Agente | Rol | Modelo |
-|--------|-----|--------|
-| **Tutor** | Explica conceptos, genera lecciones | opus |
-| **Evaluator** | Revisa código, ejecuta tests | sonnet |
-| **Practice Coach** | Genera ejercicios adaptados | sonnet |
-
----
-
-## Herramientas MCP
-
-El servidor MCP proporciona:
-
-| Herramienta | Descripción |
-|-------------|-------------|
-| `get_student_progress` | Obtiene progreso actual |
-| `update_exercise_progress` | Actualiza ejercicios |
-| `get_next_lesson` | Recomienda siguiente lección |
-| `validate_rust_code` | Compila código Rust |
-| `run_rust_tests` | Ejecuta tests |
-| `run_clippy` | Análisis con Clippy |
-| `get_curriculum` | Obtiene curriculum |
-| `save_curriculum` | Guarda curriculum |
-| `start_study_session` | Inicia sesión |
-| `end_study_session` | Finaliza sesión |
-
----
-
-## Estructura del Plugin
-
-```
-tutor-plugin/
-├── .claude-plugin/
-│   ├── plugin.json           # Manifiesto
-│   └── marketplace.json      # Para instalación desde GitHub
-├── .mcp.json                 # Configuración MCP
-│
-├── agents/
-│   ├── tutor.md
-│   ├── evaluator.md
-│   └── practice-coach.md
-│
-├── commands/
-│   ├── init.md
-│   ├── learn.md
-│   ├── exercise.md
-│   ├── progress.md
-│   ├── review.md
-│   └── curriculum.md
-│
-├── skills/
-│   └── learning-tracker/
-│       ├── SKILL.md
-│       └── scripts/
-│           └── progress.py
-│
-├── server/
-│   ├── tutor_mcp.py
-│   └── requirements.txt
-│
-├── templates/
-│   ├── lesson.md
-│   ├── exercise.md
-│   └── project.md
-│
-└── README.md
-```
-
----
-
-## Personalización
-
-### Modelos de agentes
-
-Edita `agents/*.md`:
+Edit `agents/*.md` to change which Claude model each agent uses:
 
 ```yaml
 ---
-model: sonnet    # opus, sonnet, haiku
+model: opus     # opus, sonnet, or haiku
 ---
-```
-
-### Preferencias
-
-Edita `.tutor/config.json` en tu proyecto:
-
-```json
-{
-  "preferences": {
-    "explanation_style": "concise",
-    "exercise_difficulty": "challenging",
-    "show_hints": false
-  }
-}
 ```
 
 ---
 
-## Configuración Avanzada del MCP
+## Requirements
 
-### Opción A: Entorno Virtual (Por defecto)
-
-El plugin está configurado para usar un venv en `${CLAUDE_PLUGIN_ROOT}/venv/`. Asegúrate de crearlo después de instalar:
-
-```bash
-cd ~/.claude/plugins/tutor@netsirius-tutor-plugin
-python -m venv venv
-./venv/bin/pip install -r server/requirements.txt
-```
-
-### Opción B: Docker
-
-Si prefieres aislar el MCP completamente con Docker:
-
-1. **Crea un Dockerfile** en `server/Dockerfile`:
-
-```dockerfile
-FROM python:3.11-slim
-WORKDIR /app
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-COPY tutor_mcp.py .
-CMD ["python", "tutor_mcp.py"]
-```
-
-2. **Construye la imagen**:
-
-```bash
-cd ~/.claude/plugins/tutor@netsirius-tutor-plugin/server
-docker build -t tutor-mcp .
-```
-
-3. **Modifica `.mcp.json`**:
-
-```json
-{
-  "mcpServers": {
-    "tutor-tools": {
-      "command": "docker",
-      "args": [
-        "run", "--rm", "-i",
-        "-v", "${CLAUDE_PLUGIN_ROOT}:/plugin:ro",
-        "-e", "TUTOR_PLUGIN_ROOT=/plugin",
-        "tutor-mcp"
-      ]
-    }
-  }
-}
-```
-
-### Opción C: Python del sistema
-
-Si prefieres usar el Python global, modifica `.mcp.json`:
-
-```json
-{
-  "mcpServers": {
-    "tutor-tools": {
-      "command": "python",
-      "args": ["${CLAUDE_PLUGIN_ROOT}/server/tutor_mcp.py"],
-      "env": {
-        "TUTOR_PLUGIN_ROOT": "${CLAUDE_PLUGIN_ROOT}"
-      }
-    }
-  }
-}
-```
-
-Y asegúrate de instalar las dependencias globalmente:
-
-```bash
-pip install fastmcp
-```
+- **Claude Code CLI** — [Install guide](https://docs.anthropic.com/claude-code)
+- **uv** — Python package manager ([Install](https://docs.astral.sh/uv/getting-started/installation/))
+- **Python 3.10+** — Required by the MCP server
+- **Rust** (optional) — Only if learning Rust
 
 ---
 
-## Solución de Problemas
+## Troubleshooting
 
-### Plugin no se instala
+<details>
+<summary><strong>Plugin doesn't install</strong></summary>
 
-```
+```bash
 /plugin marketplace list
 /plugin marketplace add netsirius/tutor-plugin
 ```
+</details>
 
-### MCP no funciona
-
-El servidor MCP se inicia automáticamente con el plugin. Si hay problemas:
+<details>
+<summary><strong>MCP server issues</strong></summary>
 
 ```bash
-# 1. Verifica que el venv existe y tiene las dependencias
-ls ~/.claude/plugins/tutor@netsirius-tutor-plugin/venv/bin/python
-~/.claude/plugins/tutor@netsirius-tutor-plugin/venv/bin/pip list | grep fastmcp
+# Test MCP server manually
+cd ~/.claude/plugins/cache/tutor-plugins/tutor/1.0.0
+uv run server/tutor_mcp.py
 
-# 2. Prueba el servidor manualmente (solo para debug)
-cd ~/.claude/plugins/tutor@netsirius-tutor-plugin
-./venv/bin/python server/tutor_mcp.py
+# Check uv is installed
+uv --version
 
-# 3. Si funciona manualmente, reinicia Claude Code
+# Restart Claude Code with debug
 claude --debug
 ```
+</details>
 
-### Comandos no aparecen
+<details>
+<summary><strong>Commands don't appear</strong></summary>
 
 ```bash
 claude --debug
 /plugin
 ```
+</details>
 
 ---
 
-## Desinstalar
+## Contributing
+
+Contributions are welcome! Here's how:
+
+1. **Fork** the repository
+2. **Create** a feature branch (`git checkout -b feature/amazing-feature`)
+3. **Commit** your changes (`git commit -m 'Add amazing feature'`)
+4. **Push** to the branch (`git push origin feature/amazing-feature`)
+5. **Open** a Pull Request
+
+---
+
+## License
+
+This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
 
 ```
-/plugin uninstall tutor@netsirius-tutor-plugin
-/plugin marketplace remove netsirius-tutor-plugin
-```
-
----
-
-## Contribuir
-
-1. Fork el repositorio
-2. Crea una rama
-3. Haz cambios
-4. Pull request
-
----
-
-## Licencia
-
 MIT License
+
+Copyright (c) 2025 hsantos
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+---
+
+## Acknowledgments
+
+- Built for [Claude Code](https://claude.ai/claude-code) by Anthropic
+- Inspired by the need for personalized programming education
+
+---
+
+<p align="center">
+  <strong>Happy Learning!</strong><br>
+  <sub>Made with ❤️ for developers who want to level up</sub>
+</p>

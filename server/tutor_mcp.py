@@ -1,14 +1,21 @@
 #!/usr/bin/env python3
+# /// script
+# requires-python = ">=3.10"
+# dependencies = [
+#     "fastmcp>=2.0.0",
+# ]
+# ///
 """
 Tutor MCP Server
 
 Provides tools for the Tutor plugin to manage learning progress,
 validate code, and interact with the curriculum.
 
-Install dependencies:
-    pip install fastmcp
+Run with uv (recommended - no venv needed):
+    uv run tutor_mcp.py
 
-Run server:
+Or with pip:
+    pip install fastmcp
     python tutor_mcp.py
 """
 
@@ -22,7 +29,7 @@ from typing import Optional
 from fastmcp import FastMCP
 
 # Initialize the MCP server
-mcp = FastMCP("tutor-tools", dependencies=["fastmcp"])
+mcp = FastMCP("tutor-tools")
 
 # Get paths
 PLUGIN_ROOT = Path(os.environ.get("TUTOR_PLUGIN_ROOT", Path(__file__).parent.parent))

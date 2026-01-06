@@ -1,137 +1,218 @@
-# Template: Lección
+# Template: Lesson
 
-Usa esta plantilla cuando generes una lección para el estudiante.
+Use this template when generating a lesson for the student.
 
-## Estructura de Lección
+**CRITICAL**: All lesson content MUST be created as physical files in the project. The student reads these files directly. DO NOT present lessons only as chat messages.
+
+**Note**: Adapt all content to the student's `learning_language` from `.tutor/config.json`.
+
+## Required File Structure
+
+When creating a lesson, generate this complete directory structure:
+
+```
+lessons/[XX-module-name]/
+├── README.md                    # Module overview (use template below)
+├── 01-[first-topic].md         # First topic content
+├── 02-[second-topic].md        # Second topic content
+├── ...
+├── common-mistakes.md          # Common errors (add as students encounter them)
+├── faq.md                      # Frequently asked questions (add as students ask)
+├── examples/
+│   ├── Cargo.toml              # So examples can be run
+│   ├── src/
+│   │   └── lib.rs              # Example library (if needed)
+│   └── examples/
+│       ├── ex01_basic.rs       # cargo run --example ex01_basic
+│       ├── ex02_intermediate.rs
+│       └── ...
+└── exercises/                  # Created separately by /tutor:exercise
+```
+
+## README.md Template (Module Overview)
 
 ```markdown
-# [Módulo]: [Título del Tema]
+# Module [XX]: [Module Name]
 
-## Objetivos de Aprendizaje
+## Learning Objectives
 
-Al completar esta lección, serás capaz de:
-- [ ] [Objetivo 1]
-- [ ] [Objetivo 2]
-- [ ] [Objetivo 3]
+After completing this module, you will be able to:
+- [ ] [Objective 1]
+- [ ] [Objective 2]
+- [ ] [Objective 3]
 
-## Prerrequisitos
+## Prerequisites
 
-Antes de comenzar, asegúrate de entender:
-- [Tema prerrequisito 1]
-- [Tema prerrequisito 2]
+Before starting, make sure you understand:
+- [Link to previous module](../XX-previous-module/README.md)
+- [Specific concept needed]
 
----
+## Topics in This Module
 
-## 1. Introducción
+| # | Topic | File | Time |
+|---|-------|------|------|
+| 1 | [Topic Name] | [01-topic.md](01-topic.md) | ~30 min |
+| 2 | [Topic Name] | [02-topic.md](02-topic.md) | ~45 min |
+| ... | ... | ... | ... |
 
-### ¿Por qué es importante?
-[Contexto y motivación - por qué este concepto existe y es útil]
+## How to Use This Module
 
-### En el mundo real
-[Ejemplo práctico de dónde se usa este concepto]
+1. **Read** each topic file in order
+2. **Run** the examples in `examples/`:
+   ```bash
+   cd examples
+   cargo run --example ex01_basic
+   ```
+3. **Practice** with exercises when suggested (use `/tutor:exercise`)
+4. **Ask Claude** if you have questions about the content
 
----
+## Quick Reference
 
-## 2. Concepto Principal
+[A summary table or cheat-sheet students can reference later]
 
-### Definición
-[Explicación clara y concisa del concepto]
+## When You're Done
 
-### Analogía
-[Comparación con algo del mundo cotidiano para facilitar comprensión]
+- [ ] All topics read
+- [ ] Examples run and understood
+- [ ] At least 2 exercises completed
 
-### Diagrama
+Tell Claude: "I finished module [XX]" to mark complete and continue.
 ```
-[Diagrama ASCII si ayuda a visualizar]
+
+## Topic File Template (01-[topic].md)
+
+```markdown
+# [Topic Title]
+
+## Why This Matters
+[Context and motivation - 2-3 paragraphs max]
+
+## The Concept
+
+### Definition
+[Clear, concise explanation]
+
+### Analogy
+[Comparison with everyday life to aid understanding]
+
+### Visual
+```
+[ASCII diagram if helpful]
 ┌─────────────┐
-│   Concepto  │
+│   Concept   │
 └─────────────┘
 ```
 
----
+## How It Works
 
-## 3. Sintaxis y Uso
-
-### Forma básica
+### Basic Syntax
 ```rust
-// Código ejemplo básico
+// Basic example
+// See: examples/ex01_basic.rs for runnable version
 ```
 
-### Ejemplo comentado
+### Step by Step
 ```rust
-// Ejemplo con comentarios explicativos línea por línea
-fn ejemplo() {
-    // Explicación de cada parte
+// Example with line-by-line comments
+fn example() {
+    // 1. First we do this
+    // 2. Then this happens
 }
 ```
 
----
+## Common Use Cases
 
-## 4. Casos de Uso Comunes
-
-### Caso 1: [Nombre del caso]
+### Case 1: [Name]
 ```rust
-// Código del caso 1
+// See: examples/ex01_basic.rs
 ```
 
-### Caso 2: [Nombre del caso]
+### Case 2: [Name]
 ```rust
-// Código del caso 2
+// See: examples/ex02_intermediate.rs
 ```
 
----
+## What Can Go Wrong
 
-## 5. Errores Comunes
+> See also: [common-mistakes.md](common-mistakes.md)
 
-### Error 1: [Descripción]
+### Error: [Description]
 ```rust
-// Código que produce error
+// ❌ This won't work
 ```
-**Por qué falla:** [Explicación]
+**Why:** [Explanation]
 
-**Cómo corregirlo:**
+**Fix:**
 ```rust
-// Código correcto
+// ✅ Do this instead
 ```
 
----
+## Try It Yourself
 
-## 6. Ejercicios de Práctica
-
-### Ejercicio 1 (Básico)
-[Descripción del ejercicio]
-
-### Ejercicio 2 (Intermedio)
-[Descripción del ejercicio]
-
-### Ejercicio 3 (Avanzado)
-[Descripción del ejercicio]
-
----
-
-## 7. Resumen
-
-### Puntos clave
-- [Punto 1]
-- [Punto 2]
-- [Punto 3]
-
-### Siguiente paso
-→ [Siguiente tema en el curriculum]
-
----
-
-## 8. Recursos Adicionales
-
-- [Enlace a documentación oficial]
-- [Enlace a tutorial relacionado]
-- [Enlace a ejercicios adicionales]
+Ready to practice? Ask Claude:
+```
+/tutor:exercise
 ```
 
-## Notas para el Tutor
+## Summary
 
-1. **Adapta el nivel**: Ajusta la complejidad del vocabulario y ejemplos según el nivel del estudiante
-2. **Sé progresivo**: Empieza simple y ve aumentando la complejidad
-3. **Usa ejemplos reales**: Evita "foo", "bar" - usa nombres descriptivos
-4. **Conecta conocimiento**: Referencia conceptos previos que el estudiante ya domina
-5. **No abrumes**: Si el tema es largo, divídelo en partes
+**Key takeaways:**
+- [Point 1]
+- [Point 2]
+- [Point 3]
+
+**Next:** [02-next-topic.md](02-next-topic.md)
+```
+
+## examples/Cargo.toml Template
+
+```toml
+[package]
+name = "module_XX_examples"
+version = "0.1.0"
+edition = "2021"
+
+[[example]]
+name = "ex01_basic"
+path = "examples/ex01_basic.rs"
+
+[[example]]
+name = "ex02_intermediate"
+path = "examples/ex02_intermediate.rs"
+
+[dependencies]
+# Add as needed
+```
+
+## Example File Template (examples/ex01_basic.rs)
+
+```rust
+//! Example: [Title]
+//!
+//! Run with: cargo run --example ex01_basic
+//!
+//! This example demonstrates:
+//! - [Point 1]
+//! - [Point 2]
+
+fn main() {
+    println!("=== [Example Title] ===\n");
+
+    // Example code with detailed comments
+    // explaining what each part does
+
+    println!("\nTry modifying this example to see what happens!");
+}
+```
+
+## Notes for the Tutor
+
+1. **ALWAYS create files** - Never present lessons only in chat
+2. **Adapt the level** - Adjust vocabulary and examples for student's level
+3. **Be progressive** - Start simple, increase complexity gradually
+4. **Use real examples** - Avoid "foo", "bar" - use descriptive names
+5. **Connect knowledge** - Reference previous concepts already mastered
+6. **Don't overwhelm** - Split long topics into multiple files
+7. **Runnable examples** - Every code example should be runnable
+8. **Use the student's language** - All content in `learning_language`
+9. **Update as you go** - Add to common-mistakes.md and faq.md when students ask questions

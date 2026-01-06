@@ -1,60 +1,64 @@
 ---
-description: Gestionar el plan de estudios. Usa /tutor:curriculum para ver el curriculum actual, /tutor:curriculum generar para crear uno automático, o /tutor:curriculum importar para usar uno externo (ej. de Coursera).
+description: Manage the study plan. Use /tutor:curriculum to view the current curriculum, /tutor:curriculum generate to create an automatic one, or /tutor:curriculum import to use an external one (e.g., from Coursera).
 allowed-tools: Read, Write, Edit, Bash, WebFetch
 ---
 
-# Comando: Curriculum
+# Command: Curriculum
 
-El usuario quiere ver, generar, o importar un plan de estudios.
+The user wants to view, generate, or import a study plan.
 
-## Modos de Uso
+## Important: Language Adaptation
 
-### 1. Ver curriculum actual: `/tutor:curriculum`
-Si existe `.tutor/curriculum.json`, muestra el plan de estudios actual con progreso.
+Before presenting any content, read `.tutor/config.json` and check the `learning_language` field. ALL output MUST be presented in the student's chosen language.
 
-### 2. Generar curriculum: `/tutor:curriculum generar [lenguaje]`
-Genera un curriculum completo y estructurado para el lenguaje especificado.
+## Usage Modes
 
-### 3. Importar curriculum: `/tutor:curriculum importar`
-Permite al usuario proporcionar un plan de estudios externo (de un curso, libro, etc.)
-y lo convierte al formato del tutor.
+### 1. View current curriculum: `/tutor:curriculum`
+If `.tutor/curriculum.json` exists, show the current study plan with progress.
 
-## Estructura de curriculum.json
+### 2. Generate curriculum: `/tutor:curriculum generate [language]`
+Generate a complete and structured curriculum for the specified programming language.
+
+### 3. Import curriculum: `/tutor:curriculum import`
+Allows the user to provide an external study plan (from a course, book, etc.)
+and converts it to the tutor format.
+
+## curriculum.json Structure
 
 ```json
 {
-  "title": "Aprendiendo Rust: De Cero a Experto",
+  "title": "Learning Rust: From Zero to Expert",
   "language": "rust",
   "version": "1.0",
   "source": "generated|imported|custom",
-  "source_details": "Basado en The Rust Book + ejercicios propios",
+  "source_details": "Based on The Rust Book + custom exercises",
   "created_at": "2026-01-06",
   "total_hours_estimated": 80,
   "modules": [
     {
       "id": "01-basics",
-      "title": "Fundamentos de Rust",
-      "description": "Primeros pasos con Rust: instalación, sintaxis básica, y primeros programas",
+      "title": "Rust Fundamentals",
+      "description": "First steps with Rust: installation, basic syntax, and first programs",
       "order": 1,
       "topics": [
         {
           "id": "setup",
-          "title": "Instalación y configuración",
-          "description": "Instalar Rust, configurar IDE, entender Cargo",
+          "title": "Installation and configuration",
+          "description": "Install Rust, configure IDE, understand Cargo",
           "resources": ["https://rust-lang.org/learn/get-started"],
           "estimated_minutes": 30
         },
         {
           "id": "hello-world",
           "title": "Hello World",
-          "description": "Tu primer programa en Rust",
+          "description": "Your first program in Rust",
           "estimated_minutes": 20
         }
       ],
       "exercises": [
         {
           "id": "ex01_hello",
-          "title": "Modifica Hello World",
+          "title": "Modify Hello World",
           "difficulty": "basic",
           "topics": ["hello-world"]
         }
@@ -66,74 +70,112 @@ y lo convierte al formato del tutor.
 }
 ```
 
-## Generar Curriculum
+## Generate Curriculum
 
-Cuando el usuario pida generar un curriculum:
+When the user asks to generate a curriculum:
 
-1. Pregunta el nivel de partida:
-   - Total principiante (nunca programó)
-   - Principiante (sabe otro lenguaje)
-   - Intermedio (algo de experiencia con el lenguaje)
+1. Ask for the starting level:
+   - Total beginner (never programmed)
+   - Beginner (knows another language)
+   - Intermediate (some experience with the language)
 
-2. Pregunta objetivos:
-   - Desarrollo web (backend)
+2. Ask for goals:
+   - Web development (backend)
    - CLI tools
-   - Sistemas/embedded
-   - Contribuir a open source
-   - Aprendizaje general
+   - Systems/embedded
+   - Contribute to open source
+   - General learning
 
-3. Pregunta tiempo disponible:
-   - Casual (2-3h/semana)
-   - Regular (5-10h/semana)
-   - Intensivo (15h+/semana)
+3. Ask for available time:
+   - Casual (2-3h/week)
+   - Regular (5-10h/week)
+   - Intensive (15h+/week)
 
-4. Genera un curriculum personalizado considerando:
-   - Orden pedagógico correcto
-   - Prerrequisitos claros
-   - Ejercicios progresivos
-   - Proyectos prácticos intercalados
-   - Estimaciones realistas de tiempo
+4. Generate a personalized curriculum considering:
+   - Correct pedagogical order
+   - Clear prerequisites
+   - Progressive exercises
+   - Interspersed practical projects
+   - Realistic time estimates
 
-## Importar Curriculum
+## Import Curriculum
 
-Cuando el usuario quiera importar un curriculum:
+When the user wants to import a curriculum:
 
-1. Solicita la fuente:
+1. Request the source:
    ```
-   ¿De dónde quieres importar el plan de estudios?
+   Where do you want to import the study plan from?
 
-   1. Pegar el temario/syllabus aquí
-   2. URL de un curso (Coursera, Udemy, etc.)
-   3. Libro o recurso específico
+   1. Paste the syllabus here
+   2. URL of a course (Coursera, Udemy, etc.)
+   3. Specific book or resource
    ```
 
-2. Si pega texto:
-   - Analiza la estructura
-   - Identifica módulos y temas
-   - Mapea a formato del tutor
-   - Pregunta por aclaraciones si es necesario
+2. If they paste text:
+   - Analyze the structure
+   - Identify modules and topics
+   - Map to tutor format
+   - Ask for clarifications if needed
 
-3. Si proporciona URL:
-   - Intenta obtener el syllabus
-   - Extrae la estructura del curso
-   - Convierte a formato del tutor
+3. If they provide a URL:
+   - Try to get the syllabus
+   - Extract the course structure
+   - Convert to tutor format
 
-4. Valida con el usuario:
+4. Validate with the user:
    ```
-   He identificado la siguiente estructura:
+   I've identified the following structure:
 
-   Módulo 1: [nombre] - X temas
-   Módulo 2: [nombre] - Y temas
+   Module 1: [name] - X topics
+   Module 2: [name] - Y topics
    ...
 
-   ¿Es correcta? ¿Quieres ajustar algo?
+   Is this correct? Would you like to adjust anything?
    ```
 
-5. Guarda en `.tutor/curriculum.json`
+5. Save to `.tutor/curriculum.json`
 
-## Mostrar Curriculum
+## Display Curriculum (English)
 
-Formato visual para mostrar el curriculum:
+Visual format to display the curriculum:
+
+```
+📚 CURRICULUM: Rust - From Zero to Expert
+═══════════════════════════════════════════════════════════════
+
+📖 Source: Generated + The Rust Book
+⏱️  Estimated time: ~80 hours
+📅 At your current pace: ~3 months
+
+═══════════════════════════════════════════════════════════════
+
+MODULE 1: Rust Fundamentals (✅ Completed)
+├── ✅ Installation and Cargo
+├── ✅ Hello World
+├── ✅ Variables and types
+├── ✅ Functions
+└── 📝 4 exercises completed
+
+MODULE 2: Ownership and Borrowing (🔄 In progress - 60%)
+├── ✅ The ownership concept
+├── ✅ References and borrowing
+├── 🔄 Slices ← You are here
+├── ⬚ Basic lifetimes
+└── 📝 6/10 exercises completed
+
+MODULE 3: Data Structures (⬚ Pending)
+├── ⬚ Structs
+├── ⬚ Enums
+├── ⬚ Pattern matching
+└── 📝 0/8 exercises
+
+[...more modules...]
+
+═══════════════════════════════════════════════════════════════
+💡 Use /tutor:learn to continue with "Slices"
+```
+
+## Display Curriculum (Spanish)
 
 ```
 📚 CURRICULUM: Rust - De Cero a Experto
@@ -171,10 +213,10 @@ MÓDULO 3: Estructuras de Datos (⬚ Pendiente)
 💡 Usa /tutor:learn para continuar con "Slices"
 ```
 
-## Modificar Curriculum
+## Modify Curriculum
 
-Permitir ajustes:
-- Añadir módulos o temas
-- Reordenar según preferencias
-- Marcar temas como "ya conocido" para saltarlos
-- Añadir recursos externos
+Allow adjustments:
+- Add modules or topics
+- Reorder according to preferences
+- Mark topics as "already known" to skip them
+- Add external resources

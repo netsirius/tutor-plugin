@@ -1,37 +1,81 @@
 ---
 name: learning-tracker
-description: Gestiona el progreso de aprendizaje del estudiante. Lee y actualiza el estado del curso, módulos completados, ejercicios resueltos, y métricas de aprendizaje. Este skill se usa automáticamente cuando el tutor necesita conocer o actualizar el progreso.
+description: Manages the student's learning progress. Reads and updates course state, completed modules, solved exercises, and learning metrics. This skill is used automatically when the tutor needs to know or update progress.
 allowed-tools: Read, Write, Bash(python:*)
 ---
 
 # Learning Tracker Skill
 
-Este skill proporciona capacidades para gestionar el progreso de aprendizaje del estudiante.
+This skill provides capabilities to manage the student's learning progress.
 
-## Archivos de Estado
+## IMPORTANT: File-Based Learning Model
 
-### Ubicación
-Todos los archivos de estado se guardan en `.tutor/` en el directorio del proyecto actual:
+All learning content is stored as **physical files**. The student interacts with Claude to navigate, ask questions, and get feedback, but the **actual content lives in files**.
+
+### Complete Project Structure
+```
+[project-root]/
+├── .tutor/                    # Configuration and progress (managed by this skill)
+│   ├── config.json            # Student preferences
+│   ├── progress.json          # Module/exercise progress
+│   ├── curriculum.json        # Study plan
+│   └── sessions/              # Session history
+│
+├── lessons/                   # Learning content (created by tutor agent)
+│   ├── 01-basics/
+│   │   ├── README.md          # Module overview
+│   │   ├── 01-variables.md    # Topic content
+│   │   ├── 02-types.md
+│   │   ├── common-mistakes.md # Updated as students make mistakes
+│   │   ├── faq.md             # Updated as students ask questions
+│   │   ├── examples/
+│   │   │   ├── Cargo.toml
+│   │   │   └── examples/
+│   │   │       └── ex01_basic.rs
+│   │   └── exercises/
+│   │       └── ex01_hello/
+│   │           ├── README.md
+│   │           ├── HINTS.md
+│   │           ├── Cargo.toml
+│   │           └── src/main.rs
+│   └── 02-ownership/
+│       └── ...
+│
+└── projects/                  # Mini-projects
+    └── calculator/
+        ├── README.md
+        ├── REQUIREMENTS.md
+        └── ...
+```
+
+### Key Principle
+This skill tracks **progress through files**, but agents must create the actual content as files. Never present lessons/exercises only in chat.
+
+## State Files
+
+### Location
+All state files are saved in `.tutor/` in the current project directory:
 
 ```
 .tutor/
-├── config.json       # Configuración del curso
-├── progress.json     # Progreso detallado
-├── curriculum.json   # Plan de estudios
-└── sessions/         # Historial de sesiones
+├── config.json       # Course configuration
+├── progress.json     # Detailed progress
+├── curriculum.json   # Study plan
+└── sessions/         # Session history
     └── YYYY-MM-DD.json
 ```
 
-## Estructura de Datos
+## Data Structure
 
 ### config.json
 ```json
 {
-  "language": "rust",
-  "student_name": "nombre",
+  "learning_language": "en",
+  "programming_language": "rust",
+  "student_name": "name",
   "level": "beginner",
   "started_at": "2026-01-06T10:00:00Z",
-  "goals": ["Crear CLI tools", "Contribuir a open source"],
+  "goals": ["Create CLI tools", "Contribute to open source"],
   "time_per_session": "1h",
   "curriculum_source": "generated",
   "preferences": {
@@ -41,6 +85,8 @@ Todos los archivos de estado se guardan en `.tutor/` en el directorio del proyec
   }
 }
 ```
+
+**Note**: The `learning_language` field determines the language for ALL content presented to the student.
 
 ### progress.json
 ```json
@@ -79,113 +125,148 @@ Todos los archivos de estado se guardan en `.tutor/` en el directorio del proyec
 }
 ```
 
-## Operaciones Disponibles
+## Available Operations
 
-### 1. Inicializar Curso
-Cuando no existe `.tutor/`, crear la estructura inicial:
+### 1. Initialize Course
+When `.tutor/` doesn't exist, create the initial structure:
 
 ```python
-# Usar el script de utilidades
+# Use the utility script
 python ${SKILL_ROOT}/scripts/progress.py init --language rust --level beginner
 ```
 
-### 2. Cargar Progreso
-Leer el estado actual del estudiante:
+### 2. Load Progress
+Read the student's current state:
 
 ```python
 python ${SKILL_ROOT}/scripts/progress.py get
 ```
 
-Retorna JSON con todo el progreso.
+Returns JSON with all progress.
 
-### 3. Actualizar Progreso
-Después de completar una lección o ejercicio:
+### 3. Update Progress
+After completing a lesson or exercise:
 
 ```python
-# Completar ejercicio
+# Complete exercise
 python ${SKILL_ROOT}/scripts/progress.py complete-exercise \
   --module "02-ownership" \
   --exercise "ex02_borrowing" \
   --score 90 \
   --attempts 2
 
-# Completar módulo
+# Complete module
 python ${SKILL_ROOT}/scripts/progress.py complete-module \
   --module "02-ownership" \
   --score 88
 ```
 
-### 4. Registrar Sesión
-Al iniciar y finalizar cada sesión de estudio:
+### 4. Record Session
+At the start and end of each study session:
 
 ```python
-# Iniciar sesión
+# Start session
 python ${SKILL_ROOT}/scripts/progress.py start-session
 
-# Finalizar sesión
+# End session
 python ${SKILL_ROOT}/scripts/progress.py end-session \
   --topics-covered "borrowing,slices" \
   --exercises-done 3
 ```
 
-### 5. Obtener Recomendaciones
-Determinar qué estudiar a continuación:
+### 5. Get Recommendations
+Determine what to study next:
 
 ```python
 python ${SKILL_ROOT}/scripts/progress.py recommend
 ```
 
-Retorna el siguiente tema basado en:
-- Prerrequisitos completados
-- Áreas que necesitan refuerzo
-- Tiempo desde última práctica
+Returns the next topic based on:
+- Completed prerequisites
+- Areas that need reinforcement
+- Time since last practice
 
-### 6. Generar Reporte
-Crear un resumen del progreso:
+### 6. Generate Report
+Create a progress summary:
 
 ```python
 python ${SKILL_ROOT}/scripts/progress.py report
 ```
 
-## Cálculo de Métricas
+## Metrics Calculation
 
-### Puntuación de Ejercicio
-- 100 puntos: Completado en primer intento
-- -10 puntos por cada intento adicional
-- Mínimo 60 puntos si se completa
+### Exercise Score
+- 100 points: Completed on first attempt
+- -10 points per additional attempt
+- Minimum 60 points if completed
 
-### Puntuación de Módulo
-- Promedio ponderado de ejercicios
-- Bonus por completar sin saltar ejercicios
+### Module Score
+- Weighted average of exercises
+- Bonus for completing without skipping exercises
 
-### Racha (Streak)
-- Cuenta días consecutivos con actividad
-- Se reinicia si pasan más de 24h sin estudiar
-- Considerar zona horaria del estudiante
+### Streak
+- Counts consecutive days with activity
+- Resets if more than 24h pass without studying
+- Consider student's timezone
 
-### Nivel de Maestría
-Basado en puntuación acumulada:
-- < 70: Necesita refuerzo
-- 70-85: Competente
-- 85-95: Proficiente
-- > 95: Experto
+### Mastery Level
+Based on cumulative score:
+- < 70: Needs reinforcement
+- 70-85: Competent
+- 85-95: Proficient
+- > 95: Expert
 
-## Uso en los Agentes
+## Usage in Agents
 
-Los agentes del tutor deben:
+Tutor agents should:
 
-1. **Al inicio de sesión**: Cargar progreso para contextualizar
-2. **Después de cada ejercicio**: Actualizar progreso inmediatamente
-3. **Al dar feedback**: Considerar el historial del estudiante
-4. **Al sugerir siguiente paso**: Usar las recomendaciones
+1. **At session start**: Load progress to contextualize
+2. **After each exercise**: Update progress immediately
+3. **When giving feedback**: Consider student history
+4. **When suggesting next step**: Use recommendations
 
-## Ejemplo de Integración
+## Integration Example
 
 ```
-1. Usuario dice "continuar con el curso"
-2. Tutor ejecuta: python progress.py get
-3. Lee que está en módulo 02, tema "borrowing"
-4. Presenta la lección correspondiente
-5. Al completar ejercicio, ejecuta: python progress.py complete-exercise ...
-6. Sugiere siguiente tema basado en: python progress.py recommend
+1. User says "continue with the course"
+2. Tutor executes: python progress.py get
+3. Reads that they're on module 02, topic "borrowing"
+4. Checks if lesson files exist: lessons/02-ownership/
+   - If YES: Guide student to the files ("Open lessons/02-ownership/README.md")
+   - If NO: CREATE the lesson files first, then guide student
+5. Student works through the files, asks questions in chat
+6. On exercise completion, executes: python progress.py complete-exercise ...
+7. Suggests next topic based on: python progress.py recommend
+```
+
+## File-Based Workflow
+
+### When Teaching
+```
+Tutor: "Let me create the lesson for you..."
+       [Creates lessons/02-ownership/ with all files]
+       "I've created the lesson. Open lessons/02-ownership/README.md to begin."
+
+Student: [Reads files, runs examples]
+         "I don't understand borrowing"
+
+Tutor: "Good question! Let me add a clarification..."
+       [Updates lessons/02-ownership/01-borrowing.md with FAQ section]
+       "I've added more explanation to the file. Check the FAQ section."
+```
+
+### When Practicing
+```
+Student: "/tutor:exercise"
+
+Coach: [Creates lessons/02-ownership/exercises/ex01_move/]
+       "Exercise ready! Check lessons/02-ownership/exercises/ex01_move/README.md"
+
+Student: [Works on src/main.rs, runs cargo test]
+         "I'm done!"
+
+Evaluator: [Reads student's code, runs tests]
+           [Creates REVIEW.md in exercise directory]
+           "Great job! I've saved feedback to REVIEW.md. Score: 85/100"
+           [Updates .tutor/progress.json]
 ```

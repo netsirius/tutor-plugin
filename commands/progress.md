@@ -1,29 +1,77 @@
 ---
-description: Ver el progreso de aprendizaje. Muestra estadísticas, temas completados, racha de estudio, y sugerencias de qué estudiar a continuación.
+description: View learning progress. Shows statistics, completed topics, study streak, and suggestions for what to study next.
 allowed-tools: Read, Bash
 ---
 
-# Comando: Progress
+# Command: Progress
 
-El usuario quiere ver su progreso de aprendizaje.
+The user wants to see their learning progress.
 
-## Tu Tarea
+## Important: Language Adaptation
 
-1. Lee los archivos de estado:
-   - `.tutor/config.json` - configuración del curso
-   - `.tutor/progress.json` - progreso detallado
-   - `.tutor/curriculum.json` - plan de estudios
+Before presenting any content, read `.tutor/config.json` and check the `learning_language` field. ALL output MUST be presented in the student's chosen language.
 
-2. Calcula estadísticas:
-   - Módulos completados / total
-   - Ejercicios completados / total
-   - Tiempo total de estudio
-   - Racha actual de días
-   - Promedio de intentos por ejercicio
+## Your Task
 
-3. Presenta el informe de forma visual y motivadora
+1. Read the state files:
+   - `.tutor/config.json` - course configuration (includes learning_language)
+   - `.tutor/progress.json` - detailed progress
+   - `.tutor/curriculum.json` - study plan
 
-## Formato de Respuesta
+2. Calculate statistics:
+   - Modules completed / total
+   - Exercises completed / total
+   - Total study time
+   - Current day streak
+   - Average attempts per exercise
+
+3. Present the report visually and motivationally (in the student's language)
+
+## Response Format (English Example)
+
+```
+╔══════════════════════════════════════════════════════════════╗
+║                    📚 Your Progress in Rust                   ║
+╠══════════════════════════════════════════════════════════════╣
+║  Level: Intermediate                                          ║
+║  Days studying: 15  |  Current streak: 🔥 5 days             ║
+╚══════════════════════════════════════════════════════════════╝
+
+📊 GENERAL SUMMARY
+├── Modules completed: 3/10 (30%)
+├── Exercises solved: 24/80
+├── Total time: ~12 hours
+└── Average per exercise: 1.5 attempts
+
+📈 PROGRESS BY MODULE
+┌────────────────────────────────────────┐
+│ ✅ 01. Fundamentals       [██████████] │
+│ ✅ 02. Ownership          [██████████] │
+│ ✅ 03. Structs & Enums    [██████████] │
+│ 🔄 04. Error Handling     [████░░░░░░] │ ← You are here
+│ ⬚ 05. Collections         [░░░░░░░░░░] │
+│ ⬚ 06. Traits              [░░░░░░░░░░] │
+│ ...                                    │
+└────────────────────────────────────────┘
+
+💪 STRENGTHS
+• Variables and basic types
+• Pattern matching
+• Using Option and Result
+
+📌 AREAS TO REINFORCE
+• Lifetimes (3 exercises with difficulty)
+• Borrowing in complex structures
+
+🎯 SUGGESTED NEXT STEP
+Continue with "Error Handling" - you have 4 exercises
+left in the module. You're close to completing it!
+
+📅 LAST SESSION
+2 days ago - You worked on "Result and the ? operator"
+```
+
+## Response Format (Spanish Example)
 
 ```
 ╔══════════════════════════════════════════════════════════════╗
@@ -67,24 +115,36 @@ del módulo. ¡Estás cerca de completarlo!
 Hace 2 días - Trabajaste en "Result y el operador ?"
 ```
 
-## Si No Hay Progreso
+## If There's No Progress
 
-Si `.tutor/` no existe:
+If `.tutor/` doesn't exist:
 
+For English:
+```
+👋 Hi! You haven't started any course yet.
+
+To begin, use:
+  /tutor:init           - Initialize a new course
+  /tutor:curriculum     - Set up a study plan
+
+Ready to start your learning journey?
+```
+
+For Spanish:
 ```
 👋 ¡Hola! Aún no has iniciado ningún curso.
 
 Para comenzar, usa:
-  /tutor:learn           - Iniciar un nuevo curso
-  /tutor:curriculum      - Configurar un plan de estudios
+  /tutor:init           - Iniciar un nuevo curso
+  /tutor:curriculum     - Configurar un plan de estudios
 
 ¿Listo para empezar tu viaje de aprendizaje?
 ```
 
-## Información Adicional Disponible
+## Additional Information Available
 
-Si el usuario pide más detalle:
-- Historial de sesiones (`.tutor/sessions/`)
-- Ejercicios específicos completados
-- Tiempo por módulo
-- Gráfico de actividad semanal
+If the user asks for more detail:
+- Session history (`.tutor/sessions/`)
+- Specific completed exercises
+- Time per module
+- Weekly activity graph

@@ -1,7 +1,7 @@
 {
   "name": "tutor",
   "version": "1.0.0",
-  "description": "Tutor personal adaptativo para aprender lenguajes de programación. Incluye lecciones progresivas, ejercicios interactivos con validación automática, y seguimiento de progreso. Soporta Rust y otros lenguajes.",
+  "description": "Adaptive personal tutor for learning programming languages. Includes progressive lessons, interactive exercises with automatic validation, and progress tracking. Supports Rust and other languages. Multi-language support for learning in your preferred language.",
   "author": {
     "name": "hsantos"
   },
