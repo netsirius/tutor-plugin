@@ -1,5 +1,5 @@
 ---
-description: Initialize a new tutoring project. Use /tutor:init to configure the current directory as a learning space with progress tracking.
+description: Initialize a new tutoring project. Use /tutor:init to configure the current directory as a learning space with progress tracking. Supports any subject - programming, math, science, languages, etc.
 allowed-tools: Read, Write, Bash
 ---
 
@@ -26,34 +26,53 @@ The user wants to initialize a new tutoring project in the current directory.
 
    **Note**: This setting determines the language used for all lessons, exercises, explanations, and feedback throughout the learning experience.
 
-   b) **Programming language to learn**:
+   b) **Subject to learn**:
    ```
-   What programming language do you want to learn?
-   - Rust
-   - Python
-   - TypeScript
-   - Go
-   - Other (specify)
+   What do you want to learn?
+
+   Programming:
+   - Rust, Python, TypeScript, Go, Java, C++, etc.
+
+   Mathematics:
+   - Algebra, Calculus, Statistics, Linear Algebra, etc.
+
+   Sciences:
+   - Physics, Chemistry, Biology, Computer Science Theory
+
+   Languages:
+   - English, Spanish, French, German, Japanese, etc.
+
+   Technical Skills:
+   - System Design, DevOps, Data Science, Machine Learning
+
+   Other:
+   - Any subject you want to learn!
    ```
 
    c) **Current level**:
    ```
-   What is your current level?
-   - Total beginner (never programmed before)
-   - Beginner (know how to program in another language)
-   - Intermediate (some experience with this language)
-   - Advanced (want to deepen knowledge)
+   What is your current level in this subject?
+   - Total beginner (no prior knowledge)
+   - Beginner (basic familiarity)
+   - Intermediate (working knowledge)
+   - Advanced (want to master/deepen knowledge)
    ```
 
    d) **Goals** (optional):
    ```
    What do you want to achieve? (select one or more)
-   - General learning
-   - Web development (backend)
-   - CLI tools
-   - Systems/embedded
-   - Contribute to open source
-   - Interview preparation
+
+   For Programming:
+   - General learning, Web development, CLI tools, Systems, Open source, Interview prep
+
+   For Math/Science:
+   - Academic study, Professional application, Research, Exam preparation
+
+   For Languages:
+   - Conversation, Reading, Writing, Business, Travel, Certification
+
+   For Technical Skills:
+   - Career change, Skill upgrade, Certification, Project-based
    ```
 
    e) **Curriculum**:
@@ -83,7 +102,8 @@ The user wants to initialize a new tutoring project in the current directory.
    ```json
    {
      "learning_language": "[chosen language: en|es|etc]",
-     "programming_language": "[chosen programming language]",
+     "subject_type": "[programming|mathematics|science|language|technical|other]",
+     "subject": "[specific subject: rust|calculus|physics|spanish|etc]",
      "student_name": "[name if provided]",
      "level": "[chosen level]",
      "started_at": "[current ISO date]",
@@ -92,10 +112,18 @@ The user wants to initialize a new tutoring project in the current directory.
      "preferences": {
        "explanation_style": "detailed",
        "exercise_difficulty": "adaptive",
-       "show_hints": true
+       "show_hints": true,
+       "learning_style": "adaptive"
+     },
+     "adaptive_learning": {
+       "skill_tracking": true,
+       "spaced_repetition": true,
+       "learning_style_detection": true
      }
    }
    ```
+
+   **Note**: For backward compatibility, if subject_type is "programming", also set "programming_language" to the subject value.
 
 5. **Create initial progress.json**:
 

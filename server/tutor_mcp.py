@@ -8,8 +8,18 @@
 """
 Tutor MCP Server
 
-Provides tools for the Tutor plugin to manage learning progress,
-validate code, and interact with the curriculum.
+Provides tools for the Tutor plugin to manage learning progress
+and interact with the curriculum.
+
+Supports:
+- Progress tracking and curriculum management
+- Adaptive learning with skill gap analysis
+- Spaced repetition for knowledge retention
+- Learning style adaptation
+- Comprehensive analytics
+
+Note: Code validation is handled directly by Claude via Bash commands,
+which provides more flexibility and doesn't require language-specific validators.
 
 Run with uv (recommended - no venv needed):
     uv run tutor_mcp.py
@@ -21,12 +31,14 @@ Or with pip:
 
 import json
 import os
-import subprocess
+import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
 
 from fastmcp import FastMCP
+
+# Add the server directory to path for imports
+sys.path.insert(0, str(Path(__file__).parent))
 
 # Initialize the MCP server
 mcp = FastMCP("tutor-tools")
@@ -236,178 +248,6 @@ def get_next_lesson() -> dict:
 
 
 # ============================================================================
-# CODE VALIDATION TOOLS
-# ============================================================================
-
-@mcp.tool()
-def validate_rust_code(project_path: str) -> dict:
-    """
-    Validate Rust code by running cargo check.
-
-    Args:
-        project_path: Path to the Rust project directory (containing Cargo.toml)
-
-    Returns:
-        Compilation result with success status, errors, and warnings
-    """
-    project = Path(project_path)
-
-    if not (project / "Cargo.toml").exists():
-        return {
-            "success": False,
-            "error": f"No Cargo.toml found in {project_path}"
-        }
-
-    try:
-        result = subprocess.run(
-            ["cargo", "check", "--message-format=short"],
-            cwd=project,
-            capture_output=True,
-            text=True,
-            timeout=60
-        )
-
-        return {
-            "success": result.returncode == 0,
-            "return_code": result.returncode,
-            "stdout": result.stdout,
-            "stderr": result.stderr,
-            "has_errors": "error" in result.stderr.lower(),
-            "has_warnings": "warning" in result.stderr.lower()
-        }
-    except subprocess.TimeoutExpired:
-        return {
-            "success": False,
-            "error": "Compilation timed out after 60 seconds"
-        }
-    except FileNotFoundError:
-        return {
-            "success": False,
-            "error": "cargo not found. Is Rust installed?"
-        }
-
-
-@mcp.tool()
-def run_rust_tests(project_path: str, test_name: Optional[str] = None) -> dict:
-    """
-    Run Rust tests for a project.
-
-    Args:
-        project_path: Path to the Rust project directory
-        test_name: Optional specific test name to run
-
-    Returns:
-        Test results including passed/failed counts and output
-    """
-    project = Path(project_path)
-
-    if not (project / "Cargo.toml").exists():
-        return {
-            "success": False,
-            "error": f"No Cargo.toml found in {project_path}"
-        }
-
-    cmd = ["cargo", "test"]
-    if test_name:
-        cmd.append(test_name)
-    cmd.append("--")
-    cmd.append("--nocapture")
-
-    try:
-        result = subprocess.run(
-            cmd,
-            cwd=project,
-            capture_output=True,
-            text=True,
-            timeout=120
-        )
-
-        # Parse test results
-        output = result.stdout + result.stderr
-        passed = output.count("test result: ok")
-        failed = "FAILED" in output
-
-        # Count individual tests
-        test_lines = [l for l in output.split('\n') if l.strip().startswith("test ")]
-        tests_passed = sum(1 for l in test_lines if "... ok" in l)
-        tests_failed = sum(1 for l in test_lines if "... FAILED" in l)
-
-        return {
-            "success": result.returncode == 0,
-            "all_passed": not failed,
-            "tests_passed": tests_passed,
-            "tests_failed": tests_failed,
-            "stdout": result.stdout,
-            "stderr": result.stderr
-        }
-    except subprocess.TimeoutExpired:
-        return {
-            "success": False,
-            "error": "Tests timed out after 120 seconds"
-        }
-    except FileNotFoundError:
-        return {
-            "success": False,
-            "error": "cargo not found. Is Rust installed?"
-        }
-
-
-@mcp.tool()
-def run_clippy(project_path: str) -> dict:
-    """
-    Run Clippy linter on a Rust project for code quality suggestions.
-
-    Args:
-        project_path: Path to the Rust project directory
-
-    Returns:
-        Clippy suggestions and warnings
-    """
-    project = Path(project_path)
-
-    if not (project / "Cargo.toml").exists():
-        return {
-            "success": False,
-            "error": f"No Cargo.toml found in {project_path}"
-        }
-
-    try:
-        result = subprocess.run(
-            ["cargo", "clippy", "--message-format=short"],
-            cwd=project,
-            capture_output=True,
-            text=True,
-            timeout=120
-        )
-
-        # Count warnings
-        warnings = result.stderr.count("warning:")
-        errors = result.stderr.count("error:")
-
-        return {
-            "success": result.returncode == 0,
-            "warnings_count": warnings,
-            "errors_count": errors,
-            "output": result.stderr,
-            "suggestions": [
-                line.strip()
-                for line in result.stderr.split('\n')
-                if "warning:" in line or "help:" in line
-            ]
-        }
-    except subprocess.TimeoutExpired:
-        return {
-            "success": False,
-            "error": "Clippy timed out after 120 seconds"
-        }
-    except FileNotFoundError:
-        return {
-            "success": False,
-            "error": "cargo clippy not found. Run: rustup component add clippy"
-        }
-
-
-# ============================================================================
 # CURRICULUM TOOLS
 # ============================================================================
 
@@ -592,6 +432,776 @@ def end_study_session(topics_covered: list[str], exercises_completed: list[str])
             1
         )
     }
+
+
+# ============================================================================
+# ADAPTIVE LEARNING TOOLS
+# ============================================================================
+
+@mcp.tool()
+def get_skill_gaps() -> dict:
+    """
+    Analyze current skills and identify gaps for improvement.
+
+    Returns skill assessments, gaps, and recommended learning path.
+    """
+    try:
+        from learning import AdaptiveLearningEngine
+
+        engine = AdaptiveLearningEngine(get_tutor_path())
+        skills = engine.skill_analyzer.analyze_all_skills()
+        gaps = engine.skill_analyzer.identify_gaps()
+        strengths = engine.skill_analyzer.get_strengths()
+
+        return {
+            "success": True,
+            "total_skills_assessed": len(skills),
+            "skill_levels": {s.skill_id: s.to_dict() for s in skills.values()},
+            "gaps": [g.to_dict() for g in gaps[:10]],
+            "strengths": [s.to_dict() for s in strengths[:5]],
+        }
+    except ImportError:
+        return {
+            "success": False,
+            "error": "Adaptive learning module not available",
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+        }
+
+
+@mcp.tool()
+def get_learning_recommendations(available_minutes: int = 60, context: str = "general") -> dict:
+    """
+    Get personalized learning recommendations.
+
+    Args:
+        available_minutes: Time available for study
+        context: Study context - "general", "quick_practice", "deep_learning", or "review"
+
+    Returns:
+        List of personalized recommendations
+    """
+    try:
+        from learning import AdaptiveLearningEngine
+
+        engine = AdaptiveLearningEngine(get_tutor_path())
+        recommendations = engine.get_recommendations(available_minutes, context)
+
+        return {
+            "success": True,
+            "context": context,
+            "available_minutes": available_minutes,
+            "recommendations": [r.to_dict() for r in recommendations],
+        }
+    except ImportError:
+        return {
+            "success": False,
+            "error": "Adaptive learning module not available",
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+        }
+
+
+@mcp.tool()
+def get_spaced_repetition_items() -> dict:
+    """
+    Get items due for spaced repetition review.
+
+    Returns:
+        Items due for review and SRS statistics
+    """
+    try:
+        from learning import SpacedRepetitionSystem
+
+        srs = SpacedRepetitionSystem(get_tutor_path() / "srs.json")
+        due_items = srs.get_due_items()
+        stats = srs.get_statistics()
+
+        return {
+            "success": True,
+            "due_items": [item.to_dict() for item in due_items],
+            "statistics": stats,
+        }
+    except ImportError:
+        return {
+            "success": False,
+            "error": "Spaced repetition module not available",
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+        }
+
+
+@mcp.tool()
+def record_srs_review(item_id: str, quality: int) -> dict:
+    """
+    Record a spaced repetition review result.
+
+    Args:
+        item_id: ID of the item reviewed
+        quality: Quality of recall (0-5)
+            - 0: Complete blackout
+            - 1: Incorrect, remembered upon seeing answer
+            - 2: Incorrect, but answer seemed easy
+            - 3: Correct with serious difficulty
+            - 4: Correct after hesitation
+            - 5: Perfect response
+
+    Returns:
+        Updated item schedule
+    """
+    try:
+        from learning import SpacedRepetitionSystem
+
+        srs = SpacedRepetitionSystem(get_tutor_path() / "srs.json")
+        item = srs.record_review(item_id, quality)
+
+        return {
+            "success": True,
+            "item": item.to_dict(),
+            "next_review": item.next_review.isoformat() if item.next_review else None,
+        }
+    except ImportError:
+        return {
+            "success": False,
+            "error": "Spaced repetition module not available",
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+        }
+
+
+@mcp.tool()
+def get_learning_analytics() -> dict:
+    """
+    Get comprehensive learning analytics and insights.
+
+    Returns:
+        Performance metrics, trends, and improvement suggestions
+    """
+    try:
+        from learning import AdaptiveLearningEngine
+
+        engine = AdaptiveLearningEngine(get_tutor_path())
+        report = engine.get_comprehensive_report()
+
+        return {
+            "success": True,
+            **report,
+        }
+    except ImportError:
+        return {
+            "success": False,
+            "error": "Analytics module not available",
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+        }
+
+
+@mcp.tool()
+def get_learning_style() -> dict:
+    """
+    Get the detected learning style profile.
+
+    Returns:
+        Learning style analysis and content recommendations
+    """
+    try:
+        from learning import LearningStyleAnalyzer
+
+        analyzer = LearningStyleAnalyzer(get_tutor_path() / "learning_profile.json")
+        summary = analyzer.get_style_summary()
+        recommendations = analyzer.get_content_recommendations()
+
+        return {
+            "success": True,
+            "style_summary": summary,
+            "content_recommendations": recommendations,
+        }
+    except ImportError:
+        return {
+            "success": False,
+            "error": "Learning style module not available",
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+        }
+
+
+@mcp.tool()
+def start_adaptive_session() -> dict:
+    """
+    Start an adaptive learning session.
+
+    Returns:
+        Session info, recommendations, and personalized content settings
+    """
+    try:
+        from learning import AdaptiveLearningEngine
+
+        engine = AdaptiveLearningEngine(get_tutor_path())
+        session_info = engine.start_session()
+
+        return {
+            "success": True,
+            **session_info,
+        }
+    except ImportError:
+        # Fallback to basic session
+        return start_study_session()
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+        }
+
+
+@mcp.tool()
+def record_exercise_completion(
+    module_id: str,
+    exercise_id: str,
+    score: int,
+    attempts: int,
+    time_spent_minutes: int
+) -> dict:
+    """
+    Record exercise completion with full adaptive tracking.
+
+    Updates progress, SRS, learning style, and skill assessments.
+
+    Args:
+        module_id: Module containing the exercise
+        exercise_id: Exercise ID
+        score: Score achieved (0-100)
+        attempts: Number of attempts
+        time_spent_minutes: Time spent on exercise
+
+    Returns:
+        Summary of all updates
+    """
+    try:
+        from learning import AdaptiveLearningEngine
+
+        engine = AdaptiveLearningEngine(get_tutor_path())
+        result = engine.record_exercise_completion(
+            module_id, exercise_id, score, attempts, time_spent_minutes
+        )
+
+        return {
+            "success": True,
+            **result,
+        }
+    except ImportError:
+        # Fallback to basic progress update
+        return update_exercise_progress(
+            module_id, exercise_id,
+            "completed" if score >= 60 else "in_progress",
+            score, attempts
+        )
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+        }
+
+
+# ============================================================================
+# EVALUATION TOOLS
+# ============================================================================
+
+@mcp.tool()
+def record_evaluation(
+    exercise_id: str,
+    exercise_type: str,
+    score: int,
+    feedback: str,
+    detailed_feedback: str = "",
+    misconceptions: list[str] = None,
+    strengths: list[str] = None,
+    suggestions: list[str] = None,
+    time_spent_seconds: int = None,
+    attempts: int = 1,
+) -> dict:
+    """
+    Record an evaluation result for any exercise type.
+
+    Supports: code, multiple_choice, free_text, math, translation, fill_blank, matching, etc.
+
+    Args:
+        exercise_id: Exercise identifier
+        exercise_type: Type of exercise (code, multiple_choice, free_text, math, translation, etc.)
+        score: Score achieved (0-100)
+        feedback: Brief feedback message
+        detailed_feedback: Detailed explanation
+        misconceptions: List of identified misconceptions
+        strengths: List of strengths shown
+        suggestions: List of improvement suggestions
+        time_spent_seconds: Time taken
+        attempts: Number of attempts
+
+    Returns:
+        Evaluation result details
+    """
+    try:
+        from learning import EvaluationEngine, ExerciseType
+
+        engine = EvaluationEngine(get_tutor_path() / "evaluations.json")
+
+        result = engine.record_evaluation(
+            exercise_id=exercise_id,
+            exercise_type=ExerciseType(exercise_type),
+            score=score,
+            feedback=feedback,
+            detailed_feedback=detailed_feedback,
+            misconceptions=misconceptions or [],
+            strengths=strengths or [],
+            suggestions=suggestions or [],
+            time_spent_seconds=time_spent_seconds,
+            attempts=attempts,
+        )
+
+        return {
+            "success": True,
+            "evaluation": result.to_dict(),
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+        }
+
+
+@mcp.tool()
+def get_evaluation_statistics() -> dict:
+    """
+    Get evaluation statistics grouped by exercise type.
+
+    Returns:
+        Statistics for each exercise type including pass rates, averages, etc.
+    """
+    try:
+        from learning import EvaluationEngine
+
+        engine = EvaluationEngine(get_tutor_path() / "evaluations.json")
+        stats = engine.get_statistics_by_type()
+        common_misconceptions = engine.get_common_misconceptions()
+
+        return {
+            "success": True,
+            "statistics_by_type": stats,
+            "common_misconceptions": [
+                {"misconception": m, "count": c}
+                for m, c in common_misconceptions
+            ],
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+        }
+
+
+# ============================================================================
+# MISCONCEPTION TOOLS
+# ============================================================================
+
+@mcp.tool()
+def record_misconception(
+    exercise_id: str,
+    exercise_type: str,
+    topic: str,
+    error_description: str,
+    student_response: str,
+    correct_response: str,
+    category: str = None,
+) -> dict:
+    """
+    Record an error/misconception for tracking and analysis.
+
+    Args:
+        exercise_id: Exercise where error occurred
+        exercise_type: Type of exercise
+        topic: Topic being studied
+        error_description: Description of the error
+        student_response: What the student submitted
+        correct_response: What was expected
+        category: Category (programming, mathematics, language, etc.)
+
+    Returns:
+        Misconception tracking result
+    """
+    try:
+        from learning import MisconceptionTracker
+
+        tracker = MisconceptionTracker(get_tutor_path() / "misconceptions.json")
+
+        misconception = tracker.record_error(
+            exercise_id=exercise_id,
+            exercise_type=exercise_type,
+            topic=topic,
+            error_description=error_description,
+            student_response=student_response,
+            correct_response=correct_response,
+            category=category,
+        )
+
+        return {
+            "success": True,
+            "misconception": misconception.to_dict(),
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+        }
+
+
+@mcp.tool()
+def get_misconception_analysis() -> dict:
+    """
+    Get analysis of student misconceptions.
+
+    Returns:
+        Active misconceptions, remediation suggestions, and statistics
+    """
+    try:
+        from learning import MisconceptionTracker
+
+        tracker = MisconceptionTracker(get_tutor_path() / "misconceptions.json")
+
+        active = tracker.get_active_misconceptions()
+        high_priority = tracker.get_high_priority_misconceptions()
+        suggestions = tracker.get_remediation_suggestions()
+        stats = tracker.get_statistics()
+
+        return {
+            "success": True,
+            "active_misconceptions": [m.to_dict() for m in active],
+            "high_priority": [m.to_dict() for m in high_priority],
+            "remediation_suggestions": [s.to_dict() for s in suggestions],
+            "statistics": stats,
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+        }
+
+
+@mcp.tool()
+def get_topic_warning(topic: str) -> dict:
+    """
+    Get a warning if student has misconceptions in a topic.
+
+    Args:
+        topic: Topic about to be studied
+
+    Returns:
+        Warning message if applicable
+    """
+    try:
+        from learning import MisconceptionTracker
+
+        tracker = MisconceptionTracker(get_tutor_path() / "misconceptions.json")
+        warning = tracker.get_warning_for_topic(topic)
+
+        return {
+            "success": True,
+            "has_warning": warning is not None,
+            "warning": warning,
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+        }
+
+
+# ============================================================================
+# PREREQUISITE TOOLS
+# ============================================================================
+
+@mcp.tool()
+def check_topic_readiness(topic_id: str) -> dict:
+    """
+    Check if the student is ready for a topic based on prerequisites.
+
+    Args:
+        topic_id: The topic to check
+
+    Returns:
+        Readiness assessment with met/missing prerequisites
+    """
+    try:
+        from learning import PrerequisiteManager
+
+        progress = load_json(get_tutor_path() / "progress.json")
+        curriculum = load_json(get_tutor_path() / "curriculum.json")
+
+        manager = PrerequisiteManager(curriculum, progress, get_tutor_path() / "prerequisites.json")
+        readiness = manager.check_readiness(topic_id)
+
+        return {
+            "success": True,
+            "readiness": readiness.to_dict(),
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+        }
+
+
+@mcp.tool()
+def get_learning_path_to(target_topic: str) -> dict:
+    """
+    Get the optimal learning path to a target topic.
+
+    Args:
+        target_topic: The topic to learn
+
+    Returns:
+        Ordered learning path with prerequisites
+    """
+    try:
+        from learning import PrerequisiteManager
+
+        progress = load_json(get_tutor_path() / "progress.json")
+        curriculum = load_json(get_tutor_path() / "curriculum.json")
+
+        manager = PrerequisiteManager(curriculum, progress, get_tutor_path() / "prerequisites.json")
+        path = manager.get_learning_path(target_topic)
+
+        return {
+            "success": True,
+            "learning_path": path.to_dict(),
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+        }
+
+
+# ============================================================================
+# GAMIFICATION TOOLS
+# ============================================================================
+
+@mcp.tool()
+def check_achievements(event_type: str, **event_details) -> dict:
+    """
+    Check for new achievements based on an event.
+
+    Args:
+        event_type: Type of event (exercise_completed, session_started, etc.)
+        **event_details: Additional event details (score, attempts, time_minutes, etc.)
+
+    Returns:
+        Newly earned badges and challenge updates
+    """
+    try:
+        from learning import GamificationEngine
+
+        progress = load_json(get_tutor_path() / "progress.json")
+        engine = GamificationEngine(progress, get_tutor_path() / "gamification.json")
+
+        event = {"type": event_type, **event_details}
+        new_badges = engine.check_achievements(event)
+        challenge_update = engine.update_challenge_progress(event)
+
+        return {
+            "success": True,
+            "new_badges": [b.to_dict() for b in new_badges],
+            "challenge_update": challenge_update,
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+        }
+
+
+@mcp.tool()
+def get_gamification_progress() -> dict:
+    """
+    Get gamification progress summary.
+
+    Returns:
+        Level, XP, badges, challenges, milestones, and personal bests
+    """
+    try:
+        from learning import GamificationEngine
+
+        progress = load_json(get_tutor_path() / "progress.json")
+        engine = GamificationEngine(progress, get_tutor_path() / "gamification.json")
+
+        summary = engine.get_progress_summary()
+        all_badges = engine.get_all_badges()
+        milestones = engine.get_milestones()
+
+        return {
+            "success": True,
+            "summary": summary,
+            "all_badges": all_badges,
+            "milestones": [m.to_dict() for m in milestones],
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+        }
+
+
+@mcp.tool()
+def get_current_challenge() -> dict:
+    """
+    Get the current active weekly challenge.
+
+    Returns:
+        Challenge details and progress
+    """
+    try:
+        from learning import GamificationEngine
+
+        progress = load_json(get_tutor_path() / "progress.json")
+        engine = GamificationEngine(progress, get_tutor_path() / "gamification.json")
+
+        challenge = engine.get_current_challenge()
+
+        return {
+            "success": True,
+            "challenge": challenge.to_dict() if challenge else None,
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+        }
+
+
+# ============================================================================
+# EXPORT/IMPORT TOOLS
+# ============================================================================
+
+@mcp.tool()
+def export_progress(
+    format: str = "json",
+    include_sessions: bool = True,
+    include_evaluations: bool = True,
+) -> dict:
+    """
+    Export learning progress to a file.
+
+    Args:
+        format: Export format (json, json.gz, md, tutor)
+        include_sessions: Include session history
+        include_evaluations: Include evaluation history
+
+    Returns:
+        Export result with file path
+    """
+    try:
+        from learning import ProgressExporter, ExportFormat
+
+        exporter = ProgressExporter(get_tutor_path())
+        result = exporter.export(
+            format=ExportFormat(format),
+            include_sessions=include_sessions,
+            include_evaluations=include_evaluations,
+        )
+
+        return {
+            "success": True,
+            "export": result.to_dict(),
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+        }
+
+
+@mcp.tool()
+def import_progress(
+    filepath: str,
+    merge_strategy: str = "newer_wins",
+    create_backup: bool = True,
+) -> dict:
+    """
+    Import learning progress from a file.
+
+    Args:
+        filepath: Path to import file
+        merge_strategy: How to handle conflicts (newer_wins, import_wins, existing_wins, merge)
+        create_backup: Create backup before import
+
+    Returns:
+        Import result with details
+    """
+    try:
+        from learning import ProgressImporter
+        from pathlib import Path
+
+        importer = ProgressImporter(get_tutor_path())
+        result = importer.import_progress(
+            filepath=Path(filepath),
+            merge_strategy=merge_strategy,
+            create_backup=create_backup,
+        )
+
+        return {
+            "success": result.success,
+            "import_result": result.to_dict(),
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+        }
+
+
+@mcp.tool()
+def validate_import_file(filepath: str) -> dict:
+    """
+    Validate an import file without importing.
+
+    Args:
+        filepath: Path to import file
+
+    Returns:
+        Validation result with preview
+    """
+    try:
+        from learning import ProgressImporter
+        from pathlib import Path
+
+        importer = ProgressImporter(get_tutor_path())
+        result = importer.validate_import_file(Path(filepath))
+
+        return {
+            "success": True,
+            "validation": result,
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+        }
 
 
 # Run the server

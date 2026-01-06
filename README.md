@@ -1,30 +1,55 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Claude_Code-Plugin-blueviolet?style=for-the-badge&logo=anthropic" alt="Claude Code Plugin">
-  <img src="https://img.shields.io/badge/version-1.0.0-blue?style=for-the-badge" alt="Version">
+  <img src="https://img.shields.io/badge/version-2.0.0-blue?style=for-the-badge" alt="Version">
   <img src="https://img.shields.io/badge/license-MIT-green?style=for-the-badge" alt="License">
 </p>
 
 <h1 align="center">Tutor Plugin for Claude Code</h1>
 
 <p align="center">
-  <strong>An adaptive AI-powered personal tutor for learning programming languages</strong>
+  <strong>An adaptive AI-powered personal tutor for learning ANYTHING</strong>
 </p>
 
 <p align="center">
-  Learn Rust, Python, TypeScript, Go and more with personalized lessons,<br>
-  interactive exercises, and real-time feedback — all within Claude Code.
+  Learn programming (any language), mathematics, sciences, languages, and more<br>
+  with personalized lessons, adaptive exercises, and intelligent feedback — all within Claude Code.
 </p>
 
 ---
 
 ## Why Tutor Plugin?
 
-Learning to code is hard. Traditional resources often lack personalization, immediate feedback, and the ability to adapt to your pace. **Tutor Plugin** brings the power of AI directly into your development environment, creating a personalized learning experience that:
+Learning is hard. Traditional resources often lack personalization, immediate feedback, and the ability to adapt to your pace. **Tutor Plugin** brings the power of AI directly into your development environment, creating a personalized learning experience that:
 
-- **Adapts to your level** — From complete beginner to advanced developer
-- **Provides instant feedback** — Get code reviews and hints in real-time
+- **Teaches ANY subject** — Programming, math, science, languages, and more
+- **Adapts to your level** — From complete beginner to expert
+- **Uses adaptive learning** — Skill gap analysis, spaced repetition, learning style detection
+- **Provides instant feedback** — Get reviews and hints in real-time
 - **Tracks your progress** — Visual dashboards show your journey
 - **Speaks your language** — Learn in English, Spanish, or other languages
+
+---
+
+## What's New in v2.0
+
+- **Universal Subject Support** — Learn any subject, not just programming
+- **Adaptive Learning Engine** — Skill gap analysis and personalized recommendations
+- **Spaced Repetition System** — Optimized knowledge retention with SM-2 algorithm
+- **Learning Style Detection** — Adapts content to your learning preferences
+- **Comprehensive Analytics** — Detailed insights and improvement suggestions
+
+---
+
+## Supported Subjects
+
+| Category | Examples |
+|----------|----------|
+| **Programming** | Rust, Python, TypeScript, Go, Java, C++, Ruby, PHP, Swift, Kotlin |
+| **Mathematics** | Algebra, Calculus, Statistics, Linear Algebra, Discrete Math |
+| **Sciences** | Physics, Chemistry, Biology, Computer Science Theory |
+| **Languages** | English, Spanish, French, German, Japanese, and more |
+| **Technical Skills** | System Design, DevOps, Data Science, Machine Learning |
+| **Other** | Any subject you want to learn! |
 
 ---
 
@@ -32,12 +57,16 @@ Learning to code is hard. Traditional resources often lack personalization, imme
 
 | Feature | Description |
 |---------|-------------|
-| **Progressive Learning** | Structured curriculum from basics to advanced topics |
-| **Interactive Exercises** | Hands-on problems with automated tests and validation |
+| **Universal Learning** | Learn any subject with appropriate teaching methods |
+| **Progressive Curriculum** | Structured learning from basics to advanced topics |
+| **Adaptive Exercises** | Personalized exercises based on skill gaps and learning style |
+| **Spaced Repetition** | Automatic review scheduling for optimal retention |
 | **Smart Progress Tracking** | Track modules, exercises, streaks, and performance metrics |
-| **Flexible Curriculum** | Generate automatically or import from Coursera, books, etc. |
-| **Educational Code Reviews** | Constructive feedback that teaches, not just corrects |
-| **Multi-Language Support** | Learn in your preferred language (EN, ES, and more) |
+| **Skill Gap Analysis** | Identifies and targets areas needing improvement |
+| **Learning Style Adaptation** | Detects and adapts to your learning preferences |
+| **Flexible Curriculum** | Generate automatically or import from external sources |
+| **Educational Reviews** | Constructive feedback that teaches, not just corrects |
+| **Multi-Language Interface** | Learn in English, Spanish, or other languages |
 | **Three Specialized Agents** | Tutor, Evaluator, and Practice Coach working together |
 
 ---
@@ -70,7 +99,7 @@ powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
 ### 3. Start Learning!
 
 ```bash
-mkdir ~/learning-rust && cd ~/learning-rust
+mkdir ~/my-learning && cd ~/my-learning
 claude
 ```
 
@@ -78,7 +107,13 @@ claude
 /tutor:init
 ```
 
-The tutor will guide you through setup — choosing your language, level, and goals.
+The tutor will guide you through setup — choosing your subject, level, and goals.
+
+**Example setups:**
+- Learn Rust programming from scratch
+- Study calculus for university
+- Practice Spanish conversation
+- Master system design for interviews
 
 ---
 
@@ -117,8 +152,8 @@ The tutor will guide you through setup — choosing your language, level, and go
 │         ┌────────────────┼────────────────┐                     │
 │         │                │                │                     │
 │   ┌─────▼─────┐   ┌──────▼─────┐   ┌─────▼─────┐               │
-│   │ Progress  │   │ Curriculum │   │   Code    │               │
-│   │ Tracking  │   │ Management │   │ Validation│               │
+│   │ Progress  │   │ Curriculum │   │ Adaptive  │               │
+│   │ Tracking  │   │ Management │   │ Learning  │               │
 │   └───────────┘   └────────────┘   └───────────┘               │
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
