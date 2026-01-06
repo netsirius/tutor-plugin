@@ -1,0 +1,15 @@
+{
+  "name": "tutor",
+  "version": "1.0.0",
+  "description": "Tutor personal adaptativo para aprender lenguajes de programación. Incluye lecciones progresivas, ejercicios interactivos con validación automática, y seguimiento de progreso. Soporta Rust y otros lenguajes.",
+  "author": {
+    "name": "hsantos"
+  },
+  "homepage": "https://github.com/hsantos/tutor-plugin",
+  "license": "MIT",
+  "keywords": ["learning", "tutor", "rust", "programming", "education", "exercises"],
+  "agents": "./agents/",
+  "skills": "./skills/",
+  "commands": "./commands/",
+  "mcpServers": "./.mcp.json"
+}

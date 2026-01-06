@@ -1,0 +1,15 @@
+{
+  "name": "tutor-plugins",
+  "description": "Plugin marketplace para tutores de programación con Claude Code",
+  "owner": {
+    "name": "hsantos",
+    "url": "https://github.com/hsantos"
+  },
+  "plugins": [
+    {
+      "name": "tutor",
+      "source": ".",
+      "description": "Tutor personal adaptativo para aprender lenguajes de programación. Incluye lecciones progresivas, ejercicios interactivos, seguimiento de progreso, y feedback educativo."
+    }
+  ]
+}
