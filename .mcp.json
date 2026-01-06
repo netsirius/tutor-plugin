@@ -1,7 +1,7 @@
 {
   "mcpServers": {
     "tutor-tools": {
-      "command": "python",
+      "command": "${CLAUDE_PLUGIN_ROOT}/venv/bin/python",
       "args": ["${CLAUDE_PLUGIN_ROOT}/server/tutor_mcp.py"],
       "env": {
         "TUTOR_PLUGIN_ROOT": "${CLAUDE_PLUGIN_ROOT}"
