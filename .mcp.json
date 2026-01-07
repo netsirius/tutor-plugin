@@ -1,11 +1,10 @@
 {
   "mcpServers": {
     "tutor-tools": {
-      "command": "uv",
-      "args": ["run", "${CLAUDE_PLUGIN_ROOT}/server/tutor_mcp.py"],
+      "command": "/bin/bash",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/server/run_server.sh"],
       "env": {
-        "TUTOR_PLUGIN_ROOT": "${CLAUDE_PLUGIN_ROOT}",
-        "PATH": "${HOME}/.local/bin:${HOME}/.cargo/bin:/opt/homebrew/bin:/usr/local/bin:${PATH}"
+        "TUTOR_PLUGIN_ROOT": "${CLAUDE_PLUGIN_ROOT}"
       }
     }
   }

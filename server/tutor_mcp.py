@@ -1003,13 +1003,13 @@ def get_learning_path_to(target_topic: str) -> dict:
 # ============================================================================
 
 @mcp.tool()
-def check_achievements(event_type: str, **event_details) -> dict:
+def check_achievements(event_type: str, event_details: dict | None = None) -> dict:
     """
     Check for new achievements based on an event.
 
     Args:
         event_type: Type of event (exercise_completed, session_started, etc.)
-        **event_details: Additional event details (score, attempts, time_minutes, etc.)
+        event_details: Additional event details (score, attempts, time_minutes, etc.)
 
     Returns:
         Newly earned badges and challenge updates
@@ -1020,7 +1020,7 @@ def check_achievements(event_type: str, **event_details) -> dict:
         progress = load_json(get_tutor_path() / "progress.json")
         engine = GamificationEngine(progress, get_tutor_path() / "gamification.json")
 
-        event = {"type": event_type, **event_details}
+        event = {"type": event_type, **(event_details or {})}
         new_badges = engine.check_achievements(event)
         challenge_update = engine.update_challenge_progress(event)
 
