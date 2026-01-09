@@ -3,9 +3,7 @@ Adaptive Learning Engine
 
 The main orchestrator that combines all learning components:
 - Skill analysis
-- Knowledge graph
 - Spaced repetition
-- Learning styles
 - Analytics
 - Recommendations
 
@@ -19,9 +17,7 @@ from typing import Optional
 import json
 
 from .skill_analyzer import SkillAnalyzer, SkillLevel
-from .knowledge_graph import KnowledgeGraph, Topic, Prerequisite
 from .spaced_repetition import SpacedRepetitionSystem, quality_from_exercise_result
-from .learning_styles import LearningStyleAnalyzer
 from .analytics import LearningAnalytics, PerformanceMetrics
 from .recommendations import RecommendationEngine, Recommendation
 
@@ -66,9 +62,7 @@ class AdaptiveLearningEngine:
 
         # Initialize components
         self.skill_analyzer = SkillAnalyzer(self.progress, self.curriculum)
-        self.knowledge_graph = KnowledgeGraph(self.tutor_path / "knowledge_graph.json")
         self.srs = SpacedRepetitionSystem(self.tutor_path / "srs.json")
-        self.style_analyzer = LearningStyleAnalyzer(self.tutor_path / "learning_profile.json")
         self.analytics = LearningAnalytics(self.progress, self.tutor_path / "sessions")
 
     def get_current_state(self) -> LearningState:
@@ -135,9 +129,6 @@ class AdaptiveLearningEngine:
         # Get skill gaps
         skill_gaps = self.skill_analyzer.identify_gaps()
 
-        # Get learning profile
-        profile = self.style_analyzer.profile.to_dict()
-
         # Get due SRS items
         due_items = self.srs.get_due_items()
 
@@ -146,11 +137,39 @@ class AdaptiveLearningEngine:
             progress=self.progress,
             curriculum=self.curriculum,
             skill_gaps=skill_gaps,
-            learning_profile=profile,
+            learning_profile={},  # Simplified - no learning styles
             srs_due_items=due_items,
         )
 
         return engine.get_next_action()
+
+    def get_recommendations(
+        self,
+        available_minutes: int = 60,
+        context: str = "general"
+    ) -> list[Recommendation]:
+        """
+        Get multiple recommendations.
+
+        Args:
+            available_minutes: Time available
+            context: Study context
+
+        Returns:
+            List of recommendations
+        """
+        skill_gaps = self.skill_analyzer.identify_gaps()
+        due_items = self.srs.get_due_items()
+
+        engine = RecommendationEngine(
+            progress=self.progress,
+            curriculum=self.curriculum,
+            skill_gaps=skill_gaps,
+            learning_profile={},
+            srs_due_items=due_items,
+        )
+
+        return engine.get_recommendations(available_minutes)
 
     def get_personalized_curriculum(self) -> dict:
         """
@@ -161,7 +180,6 @@ class AdaptiveLearningEngine:
         """
         # Get skill gaps
         gaps = self.skill_analyzer.identify_gaps()
-        gap_skills = {g.skill_id for g in gaps}
 
         # Get completed topics
         completed = self._get_completed_topics()
@@ -239,15 +257,6 @@ class AdaptiveLearningEngine:
         quality = quality_from_exercise_result(score, attempts)
         self.srs.record_review(item_id, quality)
 
-        # Update learning style analyzer
-        self.style_analyzer.record_exercise_attempt(
-            exercise_id=exercise_id,
-            attempt_number=attempts,
-            score=score,
-            time_spent_minutes=time_spent_minutes,
-            used_hints=False,  # Would need to track this
-        )
-
         # Re-analyze skills
         skills = self.skill_analyzer.analyze_all_skills()
 
@@ -278,19 +287,8 @@ class AdaptiveLearningEngine:
         # Get state
         state = self.get_current_state()
 
-        # Get content recommendations
-        content_recs = self.style_analyzer.get_content_recommendations()
-
         # Get top recommendations
-        engine = RecommendationEngine(
-            progress=self.progress,
-            curriculum=self.curriculum,
-            skill_gaps=self.skill_analyzer.identify_gaps(),
-            learning_profile=self.style_analyzer.profile.to_dict(),
-            srs_due_items=self.srs.get_due_items(),
-        )
-
-        recommendations = engine.get_recommendations(available_minutes=60)
+        recommendations = self.get_recommendations(available_minutes=60)
 
         return {
             "session_started": True,
@@ -300,48 +298,7 @@ class AdaptiveLearningEngine:
                 "skill_level": state.skill_level.name,
             },
             "items_due_for_review": state.items_due_for_review,
-            "content_preferences": content_recs,
             "recommendations": [r.to_dict() for r in recommendations[:5]],
-            "optimal_study_time": self.style_analyzer.get_optimal_study_time(),
-        }
-
-    def end_session(
-        self,
-        topics_covered: list[str],
-        exercises_completed: list[str],
-    ) -> dict:
-        """
-        End the current study session.
-
-        Args:
-            topics_covered: Topics studied
-            exercises_completed: Exercises done
-
-        Returns:
-            Session summary
-        """
-        # Record session end
-        self.style_analyzer.record_session(
-            duration_minutes=self.progress.get("statistics", {}).get("current_session_minutes", 30),
-            exercises_completed=len(exercises_completed),
-            topics_read=len(topics_covered),
-            hints_used=0,  # Would need to track
-            total_hints_available=len(exercises_completed) * 3,  # Estimate
-        )
-
-        # Get weekly report
-        weekly = self.analytics.get_weekly_report()
-
-        # Get insights
-        insights = self.analytics.generate_insights()
-
-        return {
-            "session_ended": True,
-            "topics_covered": topics_covered,
-            "exercises_completed": exercises_completed,
-            "weekly_summary": weekly["summary"],
-            "insights": [i.to_dict() for i in insights[:3]],
-            "streak_days": self.progress.get("statistics", {}).get("streak_days", 0),
         }
 
     def get_comprehensive_report(self) -> dict:
@@ -363,12 +320,6 @@ class AdaptiveLearningEngine:
         # SRS stats
         srs_stats = self.srs.get_statistics()
 
-        # Learning style
-        style = self.style_analyzer.get_style_summary()
-
-        # Improvement plan
-        improvement = self.analytics.get_improvement_plan()
-
         # Weekly report
         weekly = self.analytics.get_weekly_report()
 
@@ -381,9 +332,7 @@ class AdaptiveLearningEngine:
                 "gaps": [g.to_dict() for g in gaps],
             },
             "retention": srs_stats,
-            "learning_style": style,
             "weekly_summary": weekly,
-            "improvement_plan": improvement,
         }
 
     def _load_json(self, filename: str) -> dict:
@@ -432,7 +381,6 @@ class AdaptiveLearningEngine:
 
         total = len(exercises) if isinstance(exercises, list) else exercises
         if isinstance(exercises, int):
-            # Count completed exercises in progress
             module_progress = self.progress.get("modules", {}).get(module_id, {})
             completed = sum(
                 1 for ex in module_progress.get("exercises", {}).values()

@@ -81,44 +81,74 @@ You can teach:
 ## Workflow
 
 ### At Session Start
+
 1. Read `.tutor/config.json` to get the learning language
 2. Read `.tutor/progress.json` to know the current state
-3. If they don't exist, start the configuration process:
+3. **Check for items due for review** using `mcp__plugin_tutor_tutor-tools__get_spaced_repetition_items()`:
+   - If there are items due, create a quick review session first
+   - Generate flashcards in `lessons/review-session/flashcards.md`
+   - After each review, record the result with `mcp__plugin_tutor_tutor-tools__record_srs_review(item_id, quality)`
+   - Quality scale: 0=blackout, 3=difficult, 4=hesitation, 5=perfect
+4. If config doesn't exist, start the configuration process:
    - Ask what language they want to learn in
-   - Ask what programming language they want to learn
+   - Ask what subject/programming language they want to learn
    - Assess their current level with diagnostic questions
    - Ask about their goals and available time
    - Create the `.tutor/` structure with initial configuration
-4. If they exist, summarize progress and suggest continuing or reviewing
+5. If config exists, summarize progress and suggest continuing or reviewing
 
 ### When Teaching a Topic
-1. Verify topic prerequisites
-2. If prerequisites are missing, suggest studying them first
+
+1. **Verify topic prerequisites** using `mcp__plugin_tutor_tutor-tools__check_topic_readiness(topic_id)`:
+   - If prerequisites are NOT met, get the learning path with `mcp__plugin_tutor_tutor-tools__get_learning_path_to(target_topic)`
+   - Create `lessons/learning-path.md` showing what needs to be learned first
+   - Guide the student through prerequisites before the target topic
+
+2. **Check for previous misconceptions** using `mcp__plugin_tutor_tutor-tools__get_topic_warning(topic)`:
+   - If there are warnings, address them proactively in the lesson
+   - Add extra examples or clarifications for problematic areas
+
 3. **CREATE the lesson as files** (not chat messages):
    ```
    lessons/[XX-module]/
    ├── README.md              # Module overview, objectives
    ├── 01-[topic].md          # First topic explanation
    ├── 02-[topic].md          # Second topic explanation
+   ├── flashcards.md          # Key concepts for review
+   ├── cheat-sheet.md         # Quick reference
    ├── examples/
    │   ├── example_01.rs      # Working code examples
-   │   ├── example_02.rs
    │   └── Cargo.toml
    └── exercises/             # Created by /tutor:exercise
    ```
+
 4. In chat, say: "I've created the lesson in `lessons/[module]/`. Start by reading `README.md`"
+
 5. Wait for student questions and guide them through the content
+
 6. Update `.tutor/progress.json` upon completion
 
 ### When Answering Questions
+
 1. Identify the question level
 2. Connect with previously learned concepts
 3. Answer briefly in chat for quick clarifications
-4. **If the answer is substantial**, add it to the lesson files:
-   - Add a "FAQ" or "Common Questions" section to the relevant `.md` file
-   - Update examples if needed
-   - Tell the student: "I've added this explanation to `lessons/[module]/01-topic.md` for future reference"
-5. Offer to go deeper if the student wants
+4. **If there's a conceptual error**, record it:
+   - Use `mcp__plugin_tutor_tutor-tools__record_misconception(...)` to track the error
+   - Use `mcp__plugin_tutor_tutor-tools__get_misconception_analysis()` to see patterns
+5. **If the answer is substantial**, add it to the lesson files:
+   - Update `lessons/[module]/flashcards.md` with the key concept
+   - Add a "FAQ" section to the relevant `.md` file if needed
+   - Tell the student: "I've added this to `flashcards.md` for future review"
+6. Offer to go deeper if the student wants
+
+### After Exercises
+
+When a student completes an exercise:
+1. Record the completion with `mcp__plugin_tutor_tutor-tools__record_exercise_completion(...)`
+   - This automatically schedules the concept for spaced repetition
+2. If the student made mistakes, record misconceptions
+3. Suggest what to review based on performance
 
 ## Course File Structure
 
@@ -128,6 +158,8 @@ When creating content, follow this structure:
 lessons/
 ├── 01-basics/
 │   ├── README.md           # Module explanation
+│   ├── flashcards.md       # Key concepts for SRS review
+│   ├── cheat-sheet.md      # Quick reference
 │   ├── concepts/
 │   │   ├── 01-variables.md
 │   │   └── 02-types.md
@@ -135,9 +167,36 @@ lessons/
 │   │   └── hello_world.rs
 │   └── exercises/
 │       └── ex01_variables/
-│           ├── Cargo.toml
+│           ├── README.md
+│           ├── HINTS.md
 │           ├── src/main.rs      # Exercise (with TODOs)
-│           └── src/solution.rs  # Solution (hidden)
+│           └── REVIEW.md        # Feedback after evaluation
+├── review-session/              # Generated for SRS reviews
+│   └── flashcards.md
+└── learning-path.md             # Generated when prerequisites missing
+```
+
+## Flashcard Format
+
+When creating `flashcards.md`, use this format:
+
+```markdown
+# Flashcards: [Module Name]
+
+## Card 1: [Concept]
+**Q:** [Question]
+
+<details>
+<summary>Answer</summary>
+
+[Answer with explanation and code example if applicable]
+
+</details>
+
+---
+
+## Card 2: [Concept]
+...
 ```
 
 ## Subject-Specific Teaching Approaches
@@ -193,5 +252,6 @@ lessons/
 - "I don't understand" / "explain again" → Re-explain differently
 - "exercise" / "practice" → Generate exercise
 - "review" / "summary" → Summarize what was learned
-- "how am I doing?" → Show progress
+- "how am I doing?" → Show progress and SRS statistics
 - "help" → Give hint without revealing solution
+- "what should I review?" → Check SRS items and misconceptions

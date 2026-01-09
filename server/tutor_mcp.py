@@ -14,12 +14,10 @@ and interact with the curriculum.
 Supports:
 - Progress tracking and curriculum management
 - Adaptive learning with skill gap analysis
-- Spaced repetition for knowledge retention
-- Learning style adaptation
+- Spaced repetition (SM-2) for knowledge retention
+- Misconception tracking
+- Prerequisites verification
 - Comprehensive analytics
-
-Note: Code validation is handled directly by Claude via Bash commands,
-which provides more flexibility and doesn't require language-specific validators.
 
 Run with uv (recommended - no venv needed):
     uv run tutor_mcp.py
@@ -212,11 +210,9 @@ def get_next_lesson() -> dict:
         )
 
         if not prereqs_met:
-            missing = [p for p in prereqs if modules.get(p, {}).get("status") != "completed"]
             continue
 
         # Find first incomplete topic/exercise
-        topics = mod.get("topics", [])
         exercises = mod.get("exercises", [])
         mod_exercises = mod_progress.get("exercises", {})
 
@@ -304,7 +300,7 @@ def save_curriculum(curriculum_data: str) -> dict:
 
     save_json(tutor_path / "curriculum.json", curriculum)
 
-    # Count exercises - handle both integer counts and lists of exercises
+    # Count exercises
     total_exercises = 0
     for m in curriculum["modules"]:
         exercises = m.get("exercises", 0)
@@ -435,78 +431,8 @@ def end_study_session(topics_covered: list[str], exercises_completed: list[str])
 
 
 # ============================================================================
-# ADAPTIVE LEARNING TOOLS
+# SPACED REPETITION TOOLS (SM-2)
 # ============================================================================
-
-@mcp.tool()
-def get_skill_gaps() -> dict:
-    """
-    Analyze current skills and identify gaps for improvement.
-
-    Returns skill assessments, gaps, and recommended learning path.
-    """
-    try:
-        from learning import AdaptiveLearningEngine
-
-        engine = AdaptiveLearningEngine(get_tutor_path())
-        skills = engine.skill_analyzer.analyze_all_skills()
-        gaps = engine.skill_analyzer.identify_gaps()
-        strengths = engine.skill_analyzer.get_strengths()
-
-        return {
-            "success": True,
-            "total_skills_assessed": len(skills),
-            "skill_levels": {s.skill_id: s.to_dict() for s in skills.values()},
-            "gaps": [g.to_dict() for g in gaps[:10]],
-            "strengths": [s.to_dict() for s in strengths[:5]],
-        }
-    except ImportError:
-        return {
-            "success": False,
-            "error": "Adaptive learning module not available",
-        }
-    except Exception as e:
-        return {
-            "success": False,
-            "error": str(e),
-        }
-
-
-@mcp.tool()
-def get_learning_recommendations(available_minutes: int = 60, context: str = "general") -> dict:
-    """
-    Get personalized learning recommendations.
-
-    Args:
-        available_minutes: Time available for study
-        context: Study context - "general", "quick_practice", "deep_learning", or "review"
-
-    Returns:
-        List of personalized recommendations
-    """
-    try:
-        from learning import AdaptiveLearningEngine
-
-        engine = AdaptiveLearningEngine(get_tutor_path())
-        recommendations = engine.get_recommendations(available_minutes, context)
-
-        return {
-            "success": True,
-            "context": context,
-            "available_minutes": available_minutes,
-            "recommendations": [r.to_dict() for r in recommendations],
-        }
-    except ImportError:
-        return {
-            "success": False,
-            "error": "Adaptive learning module not available",
-        }
-    except Exception as e:
-        return {
-            "success": False,
-            "error": str(e),
-        }
-
 
 @mcp.tool()
 def get_spaced_repetition_items() -> dict:
@@ -581,6 +507,80 @@ def record_srs_review(item_id: str, quality: int) -> dict:
         }
 
 
+# ============================================================================
+# ADAPTIVE LEARNING TOOLS
+# ============================================================================
+
+@mcp.tool()
+def get_skill_gaps() -> dict:
+    """
+    Analyze current skills and identify gaps for improvement.
+
+    Returns skill assessments, gaps, and recommended learning path.
+    """
+    try:
+        from learning import AdaptiveLearningEngine
+
+        engine = AdaptiveLearningEngine(get_tutor_path())
+        skills = engine.skill_analyzer.analyze_all_skills()
+        gaps = engine.skill_analyzer.identify_gaps()
+        strengths = engine.skill_analyzer.get_strengths()
+
+        return {
+            "success": True,
+            "total_skills_assessed": len(skills),
+            "skill_levels": {s.skill_id: s.to_dict() for s in skills.values()},
+            "gaps": [g.to_dict() for g in gaps[:10]],
+            "strengths": [s.to_dict() for s in strengths[:5]],
+        }
+    except ImportError:
+        return {
+            "success": False,
+            "error": "Adaptive learning module not available",
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+        }
+
+
+@mcp.tool()
+def get_learning_recommendations(available_minutes: int = 60, context: str = "general") -> dict:
+    """
+    Get personalized learning recommendations.
+
+    Args:
+        available_minutes: Time available for study
+        context: Study context - "general", "quick_practice", "deep_learning", or "review"
+
+    Returns:
+        List of personalized recommendations
+    """
+    try:
+        from learning import AdaptiveLearningEngine
+
+        engine = AdaptiveLearningEngine(get_tutor_path())
+        recommendations = engine.get_recommendations(available_minutes, context)
+
+        return {
+            "success": True,
+            "context": context,
+            "available_minutes": available_minutes,
+            "recommendations": [r.to_dict() for r in recommendations],
+        }
+    except ImportError:
+        return {
+            "success": False,
+            "error": "Adaptive learning module not available",
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+        }
+
+
 @mcp.tool()
 def get_learning_analytics() -> dict:
     """
@@ -603,38 +603,6 @@ def get_learning_analytics() -> dict:
         return {
             "success": False,
             "error": "Analytics module not available",
-        }
-    except Exception as e:
-        return {
-            "success": False,
-            "error": str(e),
-        }
-
-
-@mcp.tool()
-def get_learning_style() -> dict:
-    """
-    Get the detected learning style profile.
-
-    Returns:
-        Learning style analysis and content recommendations
-    """
-    try:
-        from learning import LearningStyleAnalyzer
-
-        analyzer = LearningStyleAnalyzer(get_tutor_path() / "learning_profile.json")
-        summary = analyzer.get_style_summary()
-        recommendations = analyzer.get_content_recommendations()
-
-        return {
-            "success": True,
-            "style_summary": summary,
-            "content_recommendations": recommendations,
-        }
-    except ImportError:
-        return {
-            "success": False,
-            "error": "Learning style module not available",
         }
     except Exception as e:
         return {
@@ -682,7 +650,7 @@ def record_exercise_completion(
     """
     Record exercise completion with full adaptive tracking.
 
-    Updates progress, SRS, learning style, and skill assessments.
+    Updates progress, SRS, and skill assessments.
 
     Args:
         module_id: Module containing the exercise
@@ -999,118 +967,16 @@ def get_learning_path_to(target_topic: str) -> dict:
 
 
 # ============================================================================
-# GAMIFICATION TOOLS
-# ============================================================================
-
-@mcp.tool()
-def check_achievements(event_type: str, event_details: dict | None = None) -> dict:
-    """
-    Check for new achievements based on an event.
-
-    Args:
-        event_type: Type of event (exercise_completed, session_started, etc.)
-        event_details: Additional event details (score, attempts, time_minutes, etc.)
-
-    Returns:
-        Newly earned badges and challenge updates
-    """
-    try:
-        from learning import GamificationEngine
-
-        progress = load_json(get_tutor_path() / "progress.json")
-        engine = GamificationEngine(progress, get_tutor_path() / "gamification.json")
-
-        event = {"type": event_type, **(event_details or {})}
-        new_badges = engine.check_achievements(event)
-        challenge_update = engine.update_challenge_progress(event)
-
-        return {
-            "success": True,
-            "new_badges": [b.to_dict() for b in new_badges],
-            "challenge_update": challenge_update,
-        }
-    except Exception as e:
-        return {
-            "success": False,
-            "error": str(e),
-        }
-
-
-@mcp.tool()
-def get_gamification_progress() -> dict:
-    """
-    Get gamification progress summary.
-
-    Returns:
-        Level, XP, badges, challenges, milestones, and personal bests
-    """
-    try:
-        from learning import GamificationEngine
-
-        progress = load_json(get_tutor_path() / "progress.json")
-        engine = GamificationEngine(progress, get_tutor_path() / "gamification.json")
-
-        summary = engine.get_progress_summary()
-        all_badges = engine.get_all_badges()
-        milestones = engine.get_milestones()
-
-        return {
-            "success": True,
-            "summary": summary,
-            "all_badges": all_badges,
-            "milestones": [m.to_dict() for m in milestones],
-        }
-    except Exception as e:
-        return {
-            "success": False,
-            "error": str(e),
-        }
-
-
-@mcp.tool()
-def get_current_challenge() -> dict:
-    """
-    Get the current active weekly challenge.
-
-    Returns:
-        Challenge details and progress
-    """
-    try:
-        from learning import GamificationEngine
-
-        progress = load_json(get_tutor_path() / "progress.json")
-        engine = GamificationEngine(progress, get_tutor_path() / "gamification.json")
-
-        challenge = engine.get_current_challenge()
-
-        return {
-            "success": True,
-            "challenge": challenge.to_dict() if challenge else None,
-        }
-    except Exception as e:
-        return {
-            "success": False,
-            "error": str(e),
-        }
-
-
-# ============================================================================
 # EXPORT/IMPORT TOOLS
 # ============================================================================
 
 @mcp.tool()
-def export_progress(
-    format: str = "json",
-    include_sessions: bool = True,
-    include_evaluations: bool = True,
-) -> dict:
+def export_progress(format: str = "json") -> dict:
     """
     Export learning progress to a file.
 
     Args:
-        format: Export format (json, json.gz, md, tutor)
-        include_sessions: Include session history
-        include_evaluations: Include evaluation history
+        format: Export format (json or md)
 
     Returns:
         Export result with file path
@@ -1119,11 +985,7 @@ def export_progress(
         from learning import ProgressExporter, ExportFormat
 
         exporter = ProgressExporter(get_tutor_path())
-        result = exporter.export(
-            format=ExportFormat(format),
-            include_sessions=include_sessions,
-            include_evaluations=include_evaluations,
-        )
+        result = exporter.export(format=ExportFormat(format))
 
         return {
             "success": True,
@@ -1137,18 +999,12 @@ def export_progress(
 
 
 @mcp.tool()
-def import_progress(
-    filepath: str,
-    merge_strategy: str = "newer_wins",
-    create_backup: bool = True,
-) -> dict:
+def import_progress(filepath: str) -> dict:
     """
     Import learning progress from a file.
 
     Args:
         filepath: Path to import file
-        merge_strategy: How to handle conflicts (newer_wins, import_wins, existing_wins, merge)
-        create_backup: Create backup before import
 
     Returns:
         Import result with details
@@ -1158,44 +1014,11 @@ def import_progress(
         from pathlib import Path
 
         importer = ProgressImporter(get_tutor_path())
-        result = importer.import_progress(
-            filepath=Path(filepath),
-            merge_strategy=merge_strategy,
-            create_backup=create_backup,
-        )
+        result = importer.import_progress(filepath=Path(filepath))
 
         return {
             "success": result.success,
             "import_result": result.to_dict(),
-        }
-    except Exception as e:
-        return {
-            "success": False,
-            "error": str(e),
-        }
-
-
-@mcp.tool()
-def validate_import_file(filepath: str) -> dict:
-    """
-    Validate an import file without importing.
-
-    Args:
-        filepath: Path to import file
-
-    Returns:
-        Validation result with preview
-    """
-    try:
-        from learning import ProgressImporter
-        from pathlib import Path
-
-        importer = ProgressImporter(get_tutor_path())
-        result = importer.validate_import_file(Path(filepath))
-
-        return {
-            "success": True,
-            "validation": result,
         }
     except Exception as e:
         return {
