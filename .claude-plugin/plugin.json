@@ -1,13 +1,23 @@
 {
   "name": "tutor",
-  "version": "2.0.2",
-  "description": "Adaptive personal tutor for learning programming languages. Includes progressive lessons, interactive exercises with automatic validation, and progress tracking. Supports Rust and other languages. Multi-language support for learning in your preferred language.",
+  "version": "3.0.0",
+  "description": "AI-powered tutoring with adaptive learning, exam preparation, and smart study planning. Supports university subjects, research, certifications, and self-learning. Features spaced repetition (SM-2), exam simulations, calendar export, and learning style adaptation.",
   "author": {
     "name": "hsantos"
   },
   "homepage": "https://github.com/hsantos/tutor-plugin",
   "license": "MIT",
-  "keywords": ["learning", "tutor", "rust", "programming", "education", "exercises"],
+  "keywords": [
+    "learning",
+    "tutor",
+    "education",
+    "exam",
+    "university",
+    "study",
+    "spaced-repetition",
+    "adaptive-learning",
+    "programming"
+  ],
   "agents": [
     "./agents/tutor.md",
     "./agents/evaluator.md",
@@ -18,9 +28,15 @@
   ],
   "commands": [
     "./commands/init.md",
+    "./commands/today.md",
     "./commands/learn.md",
     "./commands/exercise.md",
     "./commands/progress.md",
+    "./commands/syllabus.md",
+    "./commands/exam-prep.md",
+    "./commands/reinforce.md",
+    "./commands/extend.md",
+    "./commands/calendar.md",
     "./commands/review.md",
     "./commands/curriculum.md"
   ],

@@ -50,20 +50,88 @@
 
 ## Installation
 
-```bash
-# Clone into your plugins directory
-git clone https://github.com/yourusername/tutor-plugin ~/.claude/plugins/tutor-plugin
+### Option A: From Marketplace (recommended)
 
-# Done! The plugin auto-registers with Claude Code
+```bash
+# In Claude Code, run:
+/plugins:install tutor
 ```
 
-<details>
-<summary>Manual setup (alternative)</summary>
+The plugin will be installed automatically with all dependencies.
+
+### Option B: From local path
+
+If you have the plugin cloned locally:
 
 ```bash
-git clone https://github.com/yourusername/tutor-plugin
-cd tutor-plugin/server
-uv sync  # or: pip install -e .
+# In Claude Code, run:
+/plugins:install /path/to/tutor-plugin
+```
+
+### Option C: From GitHub URL
+
+```bash
+# In Claude Code, run:
+/plugins:install https://github.com/hsantos/tutor-plugin
+```
+
+### Verify Installation
+
+After installation, restart Claude Code and run:
+
+```bash
+/tutor:init
+```
+
+If everything is configured correctly, you'll see the initialization wizard.
+
+<details>
+<summary>Manual Installation (advanced)</summary>
+
+If the plugin system doesn't work, you can configure manually:
+
+1. Clone the repository:
+```bash
+git clone https://github.com/hsantos/tutor-plugin
+```
+
+2. Add to `~/.claude/settings.json`:
+```json
+{
+  "mcpServers": {
+    "tutor-tools": {
+      "command": "/bin/bash",
+      "args": ["/path/to/tutor-plugin/server/run_server.sh"],
+      "env": {
+        "TUTOR_PLUGIN_ROOT": "/path/to/tutor-plugin"
+      }
+    }
+  }
+}
+```
+
+3. Restart Claude Code.
+</details>
+
+<details>
+<summary>Troubleshooting</summary>
+
+**Plugin not found?**
+```bash
+/plugins:list  # Check installed plugins
+```
+
+**Server not starting?**
+```bash
+# Test the server manually
+cd /path/to/tutor-plugin/server
+bash run_server.sh
+```
+
+**Dependencies issues?**
+```bash
+# Remove venv and let it recreate
+rm -rf /path/to/tutor-plugin/server/.venv
 ```
 </details>
 
