@@ -10,6 +10,10 @@ This module provides intelligent learning features including:
 - Misconception tracking
 - Dynamic prerequisites
 - Export/Import progress
+- University context management
+- Dynamic study planning
+- Exam preparation
+- Calendar export
 
 The engine adapts to individual learning patterns and optimizes
 the learning path for each student.
@@ -24,6 +28,42 @@ from .evaluation import EvaluationEngine, ExerciseType, EvaluationResult
 from .misconceptions import MisconceptionTracker, Misconception, MisconceptionSeverity
 from .prerequisites import PrerequisiteManager, TopicReadiness, LearningPath
 from .export_import import ProgressExporter, ProgressImporter, ExportFormat
+
+# University and planning modules
+from .university_context import (
+    UniversityContextManager,
+    UniversityConfig,
+    LearningContext,
+    LearningStyle,
+    StudyPace,
+    TopicStatus,
+    Subject,
+    ExamInfo,
+    SyllabusUnit,
+    LearnerProfile,
+)
+from .study_planner import (
+    StudyPlanner,
+    StudyPlan,
+    StudySession,
+    DailyPlan,
+    SessionType,
+    PlanAdjustmentType,
+)
+from .exam_preparation import (
+    ExamPreparationEngine,
+    ExamSimulation,
+    ExamPrepMode,
+    ExamPrepPlan,
+    QuestionType,
+)
+from .calendar_export import (
+    CalendarExporter,
+    CalendarEvent,
+    CalendarExport,
+    CalendarProvider,
+    EventType,
+)
 
 __all__ = [
     # Core engine
@@ -56,4 +96,34 @@ __all__ = [
     "ProgressExporter",
     "ProgressImporter",
     "ExportFormat",
+    # University context
+    "UniversityContextManager",
+    "UniversityConfig",
+    "LearningContext",
+    "LearningStyle",
+    "StudyPace",
+    "TopicStatus",
+    "Subject",
+    "ExamInfo",
+    "SyllabusUnit",
+    "LearnerProfile",
+    # Study planning
+    "StudyPlanner",
+    "StudyPlan",
+    "StudySession",
+    "DailyPlan",
+    "SessionType",
+    "PlanAdjustmentType",
+    # Exam preparation
+    "ExamPreparationEngine",
+    "ExamSimulation",
+    "ExamPrepMode",
+    "ExamPrepPlan",
+    "QuestionType",
+    # Calendar export
+    "CalendarExporter",
+    "CalendarEvent",
+    "CalendarExport",
+    "CalendarProvider",
+    "EventType",
 ]

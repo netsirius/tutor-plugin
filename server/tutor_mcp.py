@@ -967,16 +967,882 @@ def get_learning_path_to(target_topic: str) -> dict:
 
 
 # ============================================================================
+# UNIVERSITY CONTEXT TOOLS
+# ============================================================================
+
+@mcp.tool()
+def get_university_config() -> dict:
+    """
+    Get the university-specific configuration.
+
+    Returns:
+        University config including subject, exams, syllabus, and learner profile
+    """
+    tutor_path = get_tutor_path()
+    config = load_json(tutor_path / "university_config.json")
+
+    if not config:
+        return {
+            "success": False,
+            "has_university_config": False,
+            "message": "No university configuration found. Use /tutor:init to set up."
+        }
+
+    return {
+        "success": True,
+        "has_university_config": True,
+        "config": config
+    }
+
+
+@mcp.tool()
+def add_exam(
+    name: str,
+    date: str,
+    exam_type: str = "final",
+    weight: int = 100,
+    duration_minutes: int = 120,
+    topics: list[str] = None
+) -> dict:
+    """
+    Add an exam to the university configuration.
+
+    Args:
+        name: Exam name (e.g., "Final Exam", "Midterm")
+        date: Exam date in YYYY-MM-DD format
+        exam_type: Type of exam (midterm, final, quiz, practice)
+        weight: Weight in final grade (0-100)
+        duration_minutes: Duration of the exam
+        topics: List of topic IDs included in the exam
+
+    Returns:
+        Updated exam list
+    """
+    tutor_path = get_tutor_path()
+    config = load_json(tutor_path / "university_config.json")
+
+    if not config:
+        config = {"exams": []}
+
+    if "exams" not in config:
+        config["exams"] = []
+
+    exam = {
+        "id": f"exam_{datetime.now().strftime('%Y%m%d%H%M%S')}",
+        "name": name,
+        "date": date,
+        "type": exam_type,
+        "weight": weight,
+        "duration_minutes": duration_minutes,
+        "topics_included": topics or [],
+        "created_at": datetime.now().isoformat()
+    }
+
+    config["exams"].append(exam)
+    save_json(tutor_path / "university_config.json", config)
+
+    # Calculate days until exam
+    exam_date = datetime.strptime(date, "%Y-%m-%d")
+    days_until = (exam_date - datetime.now()).days
+
+    return {
+        "success": True,
+        "exam": exam,
+        "days_until_exam": days_until,
+        "total_exams": len(config["exams"])
+    }
+
+
+@mcp.tool()
+def add_syllabus_unit(
+    name: str,
+    weight: int = 10,
+    estimated_hours: float = 4,
+    prerequisites: list[str] = None,
+    topics: list[str] = None,
+    description: str = ""
+) -> dict:
+    """
+    Add a unit to the syllabus.
+
+    Args:
+        name: Unit name (e.g., "Binary Trees", "Graphs")
+        weight: Weight in exam (0-100)
+        estimated_hours: Estimated study hours
+        prerequisites: List of prerequisite unit IDs
+        topics: List of subtopics
+        description: Unit description
+
+    Returns:
+        Updated syllabus
+    """
+    tutor_path = get_tutor_path()
+    config = load_json(tutor_path / "university_config.json")
+
+    if not config:
+        config = {"syllabus_units": []}
+
+    if "syllabus_units" not in config:
+        config["syllabus_units"] = []
+
+    # Generate ID from name
+    unit_id = f"u{len(config['syllabus_units']) + 1}-{name.lower().replace(' ', '-')[:20]}"
+
+    unit = {
+        "id": unit_id,
+        "name": name,
+        "description": description,
+        "weight": weight,
+        "estimated_hours": estimated_hours,
+        "order": len(config["syllabus_units"]) + 1,
+        "prerequisites": prerequisites or [],
+        "topics": topics or [],
+        "resources": []
+    }
+
+    config["syllabus_units"].append(unit)
+    save_json(tutor_path / "university_config.json", config)
+
+    # Update topic status
+    topic_status = load_json(tutor_path / "topic_status.json") or {}
+    topic_status[unit_id] = "new"
+    save_json(tutor_path / "topic_status.json", topic_status)
+
+    return {
+        "success": True,
+        "unit": unit,
+        "total_units": len(config["syllabus_units"]),
+        "total_hours": sum(u.get("estimated_hours", 0) for u in config["syllabus_units"])
+    }
+
+
+@mcp.tool()
+def get_topic_status() -> dict:
+    """
+    Get the status of all topics in the syllabus.
+
+    Returns:
+        Status of each topic (new, in_progress, learned, mastered, rusty)
+    """
+    tutor_path = get_tutor_path()
+    topic_status = load_json(tutor_path / "topic_status.json")
+    config = load_json(tutor_path / "university_config.json")
+
+    if not config or "syllabus_units" not in config:
+        return {
+            "success": False,
+            "message": "No syllabus configured"
+        }
+
+    # Build detailed status
+    units_with_status = []
+    status_counts = {"new": 0, "in_progress": 0, "learned": 0, "mastered": 0, "rusty": 0}
+
+    for unit in config["syllabus_units"]:
+        status = topic_status.get(unit["id"], "new")
+        status_counts[status] = status_counts.get(status, 0) + 1
+
+        units_with_status.append({
+            "id": unit["id"],
+            "name": unit["name"],
+            "status": status,
+            "weight": unit.get("weight", 0),
+            "estimated_hours": unit.get("estimated_hours", 0)
+        })
+
+    return {
+        "success": True,
+        "units": units_with_status,
+        "summary": status_counts,
+        "completion_percentage": round(
+            (status_counts.get("learned", 0) + status_counts.get("mastered", 0)) /
+            max(len(units_with_status), 1) * 100
+        )
+    }
+
+
+@mcp.tool()
+def update_topic_status(topic_id: str, new_status: str) -> dict:
+    """
+    Update the status of a topic.
+
+    Args:
+        topic_id: The topic ID to update
+        new_status: New status (new, in_progress, learned, mastered, rusty, extending)
+
+    Returns:
+        Updated status
+    """
+    valid_statuses = ["new", "in_progress", "learned", "mastered", "rusty", "extending", "reinforcing"]
+
+    if new_status not in valid_statuses:
+        return {
+            "success": False,
+            "error": f"Invalid status. Must be one of: {valid_statuses}"
+        }
+
+    tutor_path = get_tutor_path()
+    topic_status = load_json(tutor_path / "topic_status.json") or {}
+
+    old_status = topic_status.get(topic_id, "new")
+    topic_status[topic_id] = new_status
+    save_json(tutor_path / "topic_status.json", topic_status)
+
+    return {
+        "success": True,
+        "topic_id": topic_id,
+        "old_status": old_status,
+        "new_status": new_status
+    }
+
+
+# ============================================================================
+# STUDY PLANNER TOOLS
+# ============================================================================
+
+@mcp.tool()
+def generate_study_plan(
+    hours_per_week: float = 8,
+    study_days: list[str] = None,
+    preferred_session_minutes: int = 45
+) -> dict:
+    """
+    Generate a personalized study plan based on syllabus and exam dates.
+
+    Args:
+        hours_per_week: Available study hours per week
+        study_days: Days available for study (e.g., ["mon", "tue", "wed"])
+        preferred_session_minutes: Preferred session duration
+
+    Returns:
+        Generated study plan
+    """
+    try:
+        from learning import StudyPlanner
+
+        tutor_path = get_tutor_path()
+        config = load_json(tutor_path / "university_config.json")
+
+        if not config:
+            return {
+                "success": False,
+                "error": "No university configuration found"
+            }
+
+        planner = StudyPlanner(tutor_path)
+        plan = planner.generate_plan(
+            hours_per_week=hours_per_week,
+            study_days=study_days or ["mon", "tue", "wed", "thu", "fri"],
+            session_minutes=preferred_session_minutes
+        )
+
+        return {
+            "success": True,
+            "plan": plan.to_dict() if hasattr(plan, 'to_dict') else plan
+        }
+    except ImportError:
+        return {
+            "success": False,
+            "error": "Study planner module not available"
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+
+@mcp.tool()
+def get_today_plan() -> dict:
+    """
+    Get the study plan for today.
+
+    Returns:
+        Today's sessions and recommendations
+    """
+    try:
+        from learning import StudyPlanner
+
+        planner = StudyPlanner(get_tutor_path())
+        today_plan = planner.get_today_plan()
+
+        return {
+            "success": True,
+            "today": today_plan.to_dict() if hasattr(today_plan, 'to_dict') else today_plan
+        }
+    except ImportError:
+        return {
+            "success": False,
+            "error": "Study planner module not available"
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+
+@mcp.tool()
+def get_week_overview() -> dict:
+    """
+    Get the study plan overview for the current week.
+
+    Returns:
+        Week overview with daily plans
+    """
+    try:
+        from learning import StudyPlanner
+
+        planner = StudyPlanner(get_tutor_path())
+        week = planner.get_week_overview()
+
+        return {
+            "success": True,
+            "week_overview": week
+        }
+    except ImportError:
+        return {
+            "success": False,
+            "error": "Study planner module not available"
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+
+@mcp.tool()
+def adjust_study_plan(reason: str, adjustment_type: str = "reschedule") -> dict:
+    """
+    Adjust the study plan due to changes.
+
+    Args:
+        reason: Reason for adjustment (e.g., "missed_session", "exam_moved", "time_change")
+        adjustment_type: Type of adjustment (reschedule, compress, extend)
+
+    Returns:
+        Adjusted plan
+    """
+    try:
+        from learning import StudyPlanner
+
+        planner = StudyPlanner(get_tutor_path())
+        adjusted = planner.adjust_plan(reason=reason, adjustment_type=adjustment_type)
+
+        return {
+            "success": True,
+            "adjusted_plan": adjusted
+        }
+    except ImportError:
+        return {
+            "success": False,
+            "error": "Study planner module not available"
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+
+# ============================================================================
+# EXAM PREPARATION TOOLS
+# ============================================================================
+
+@mcp.tool()
+def get_exam_prep_status() -> dict:
+    """
+    Get the current exam preparation status and mode.
+
+    Returns:
+        Exam prep status including days until exam, mode, and recommendations
+    """
+    try:
+        from learning import ExamPreparationEngine
+
+        engine = ExamPreparationEngine(get_tutor_path())
+        status = engine.get_status()
+
+        return {
+            "success": True,
+            **status
+        }
+    except ImportError:
+        # Fallback basic implementation
+        tutor_path = get_tutor_path()
+        config = load_json(tutor_path / "university_config.json")
+
+        if not config or "exams" not in config or not config["exams"]:
+            return {
+                "success": True,
+                "has_exam": False,
+                "message": "No exams configured"
+            }
+
+        # Find next exam
+        now = datetime.now()
+        next_exam = None
+        for exam in config["exams"]:
+            exam_date = datetime.strptime(exam["date"], "%Y-%m-%d")
+            if exam_date > now:
+                if not next_exam or exam_date < datetime.strptime(next_exam["date"], "%Y-%m-%d"):
+                    next_exam = exam
+
+        if not next_exam:
+            return {
+                "success": True,
+                "has_exam": False,
+                "message": "No upcoming exams"
+            }
+
+        days_until = (datetime.strptime(next_exam["date"], "%Y-%m-%d") - now).days
+
+        # Determine mode
+        if days_until > 14:
+            mode = "FULL"
+        elif days_until > 7:
+            mode = "STANDARD"
+        elif days_until > 3:
+            mode = "INTENSIVE"
+        elif days_until > 1:
+            mode = "EMERGENCY"
+        else:
+            mode = "LAST_MINUTE"
+
+        return {
+            "success": True,
+            "has_exam": True,
+            "next_exam": next_exam,
+            "days_until_exam": days_until,
+            "mode": mode
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+
+@mcp.tool()
+def create_exam_simulation(
+    duration_minutes: int = 90,
+    question_count: int = 25,
+    topics: list[str] = None,
+    question_types: dict = None
+) -> dict:
+    """
+    Create an exam simulation.
+
+    Args:
+        duration_minutes: Duration of the simulation
+        question_count: Number of questions
+        topics: Specific topics to include (or all if None)
+        question_types: Distribution of question types as percentages (0-100).
+            Available types: multiple_choice, true_false, short_answer, long_answer,
+            coding, problem_solving, fill_blank, matching.
+            Example: {"multiple_choice": 40, "short_answer": 30, "coding": 30}
+            If not provided, uses default: 40% multiple_choice, 30% short_answer,
+            20% problem_solving, 10% true_false
+
+    Returns:
+        Simulation setup with questions
+    """
+    try:
+        from learning import ExamPreparationEngine, QuestionType
+
+        engine = ExamPreparationEngine(get_tutor_path())
+
+        # Convert question_types dict to QuestionType enum
+        question_distribution = None
+        if question_types:
+            question_distribution = {}
+            type_mapping = {
+                "multiple_choice": QuestionType.MULTIPLE_CHOICE,
+                "true_false": QuestionType.TRUE_FALSE,
+                "short_answer": QuestionType.SHORT_ANSWER,
+                "long_answer": QuestionType.LONG_ANSWER,
+                "coding": QuestionType.CODING,
+                "problem_solving": QuestionType.PROBLEM_SOLVING,
+                "fill_blank": QuestionType.FILL_BLANK,
+                "matching": QuestionType.MATCHING,
+            }
+            for q_type, percentage in question_types.items():
+                if q_type in type_mapping:
+                    question_distribution[type_mapping[q_type]] = percentage / 100.0
+
+        # Get topics from config if not provided
+        tutor_path = get_tutor_path()
+        if not topics:
+            config = load_json(tutor_path / "university_config.json")
+            if config and "syllabus_units" in config:
+                topics = config["syllabus_units"]
+            else:
+                topics = [{"id": "general", "name": "General", "weight": 100}]
+        elif isinstance(topics, list) and topics and isinstance(topics[0], str):
+            # Convert topic IDs to topic dicts
+            config = load_json(tutor_path / "university_config.json")
+            if config and "syllabus_units" in config:
+                topic_map = {u["id"]: u for u in config["syllabus_units"]}
+                topics = [topic_map.get(t, {"id": t, "name": t, "weight": 10}) for t in topics]
+
+        simulation = engine.create_simulation(
+            name=f"Simulacro {datetime.now().strftime('%d/%m/%Y %H:%M')}",
+            duration_minutes=duration_minutes,
+            topics=topics,
+            question_distribution=question_distribution
+        )
+
+        return {
+            "success": True,
+            "simulation": simulation.to_dict() if hasattr(simulation, 'to_dict') else simulation,
+            "question_types_used": {
+                k.value: f"{v*100:.0f}%"
+                for k, v in (question_distribution or {
+                    QuestionType.MULTIPLE_CHOICE: 0.4,
+                    QuestionType.SHORT_ANSWER: 0.3,
+                    QuestionType.PROBLEM_SOLVING: 0.2,
+                    QuestionType.TRUE_FALSE: 0.1,
+                }).items()
+            }
+        }
+    except ImportError:
+        return {
+            "success": False,
+            "error": "Exam preparation module not available"
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+
+@mcp.tool()
+def get_simulation_results(simulation_id: str) -> dict:
+    """
+    Get the results of a completed exam simulation.
+
+    Args:
+        simulation_id: ID of the simulation
+
+    Returns:
+        Detailed results and analysis
+    """
+    try:
+        from learning import ExamPreparationEngine
+
+        engine = ExamPreparationEngine(get_tutor_path())
+        results = engine.get_simulation_results(simulation_id)
+
+        return {
+            "success": True,
+            "results": results
+        }
+    except ImportError:
+        return {
+            "success": False,
+            "error": "Exam preparation module not available"
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+
+# ============================================================================
+# CALENDAR EXPORT TOOLS
+# ============================================================================
+
+@mcp.tool()
+def export_to_calendar(
+    provider: str = "ics",
+    include_sessions: bool = True,
+    include_exams: bool = True,
+    include_reminders: bool = True
+) -> dict:
+    """
+    Export study plan to calendar format.
+
+    Args:
+        provider: Calendar provider (ics, google, apple, outlook)
+        include_sessions: Include study sessions
+        include_exams: Include exam dates
+        include_reminders: Add reminder notifications
+
+    Returns:
+        Export result with file path or URLs
+    """
+    try:
+        from learning import CalendarExporter
+
+        exporter = CalendarExporter(get_tutor_path())
+        result = exporter.export(
+            provider=provider,
+            include_sessions=include_sessions,
+            include_exams=include_exams,
+            include_reminders=include_reminders
+        )
+
+        return {
+            "success": True,
+            "export": result.to_dict() if hasattr(result, 'to_dict') else result
+        }
+    except ImportError:
+        return {
+            "success": False,
+            "error": "Calendar export module not available"
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+
+@mcp.tool()
+def get_calendar_events(days_ahead: int = 7) -> dict:
+    """
+    Get upcoming calendar events for the study plan.
+
+    Args:
+        days_ahead: Number of days to look ahead
+
+    Returns:
+        List of upcoming events
+    """
+    try:
+        from learning import CalendarExporter
+
+        exporter = CalendarExporter(get_tutor_path())
+        events = exporter.get_upcoming_events(days_ahead=days_ahead)
+
+        return {
+            "success": True,
+            "events": [e.to_dict() if hasattr(e, 'to_dict') else e for e in events]
+        }
+    except ImportError:
+        return {
+            "success": False,
+            "error": "Calendar export module not available"
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+
+# ============================================================================
+# LEARNING STYLE TOOLS
+# ============================================================================
+
+@mcp.tool()
+def get_learning_style() -> dict:
+    """
+    Get the detected learning style profile.
+
+    Returns:
+        Learning style analysis and content recommendations
+    """
+    try:
+        from learning import AdaptiveLearningEngine
+
+        engine = AdaptiveLearningEngine(get_tutor_path())
+        style = engine.learning_style_detector.get_profile()
+
+        return {
+            "success": True,
+            "learning_style": style.to_dict() if hasattr(style, 'to_dict') else style
+        }
+    except ImportError:
+        # Fallback to config
+        tutor_path = get_tutor_path()
+        config = load_json(tutor_path / "config.json")
+        uni_config = load_json(tutor_path / "university_config.json")
+
+        style = (
+            uni_config.get("learner_profile", {}).get("style") or
+            config.get("preferences", {}).get("learning_style") or
+            "auto_detect"
+        )
+
+        return {
+            "success": True,
+            "learning_style": {
+                "primary": style,
+                "detected": style != "auto_detect"
+            }
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+
+@mcp.tool()
+def update_learning_style(style: str) -> dict:
+    """
+    Update the preferred learning style.
+
+    Args:
+        style: Learning style (visual, practical, theoretical, mixed, auto_detect)
+
+    Returns:
+        Updated configuration
+    """
+    valid_styles = ["visual", "practical", "theoretical", "mixed", "auto_detect"]
+
+    if style not in valid_styles:
+        return {
+            "success": False,
+            "error": f"Invalid style. Must be one of: {valid_styles}"
+        }
+
+    tutor_path = get_tutor_path()
+
+    # Update both configs
+    config = load_json(tutor_path / "config.json") or {}
+    if "preferences" not in config:
+        config["preferences"] = {}
+    config["preferences"]["learning_style"] = style
+    save_json(tutor_path / "config.json", config)
+
+    uni_config = load_json(tutor_path / "university_config.json")
+    if uni_config:
+        if "learner_profile" not in uni_config:
+            uni_config["learner_profile"] = {}
+        uni_config["learner_profile"]["style"] = style
+        save_json(tutor_path / "university_config.json", uni_config)
+
+    return {
+        "success": True,
+        "learning_style": style
+    }
+
+
+# ============================================================================
+# GAMIFICATION TOOLS
+# ============================================================================
+
+@mcp.tool()
+def check_achievements(event_type: str, event_details: dict = None) -> dict:
+    """
+    Check for new achievements based on an event.
+
+    Args:
+        event_type: Type of event (exercise_completed, session_started, etc.)
+        event_details: Additional event details (score, attempts, time_minutes, etc.)
+
+    Returns:
+        Newly earned badges and challenge updates
+    """
+    try:
+        from learning import GamificationEngine
+
+        engine = GamificationEngine(get_tutor_path() / "gamification.json")
+        result = engine.check_achievements(event_type, event_details or {})
+
+        return {
+            "success": True,
+            **result
+        }
+    except ImportError:
+        return {
+            "success": True,
+            "new_badges": [],
+            "challenges_updated": []
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+
+@mcp.tool()
+def get_gamification_progress() -> dict:
+    """
+    Get gamification progress summary.
+
+    Returns:
+        Level, XP, badges, challenges, milestones, and personal bests
+    """
+    try:
+        from learning import GamificationEngine
+
+        engine = GamificationEngine(get_tutor_path() / "gamification.json")
+        progress = engine.get_progress()
+
+        return {
+            "success": True,
+            **progress
+        }
+    except ImportError:
+        return {
+            "success": True,
+            "level": 1,
+            "xp": 0,
+            "badges": [],
+            "challenges": []
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+
+@mcp.tool()
+def get_current_challenge() -> dict:
+    """
+    Get the current active weekly challenge.
+
+    Returns:
+        Challenge details and progress
+    """
+    try:
+        from learning import GamificationEngine
+
+        engine = GamificationEngine(get_tutor_path() / "gamification.json")
+        challenge = engine.get_current_challenge()
+
+        return {
+            "success": True,
+            "challenge": challenge
+        }
+    except ImportError:
+        return {
+            "success": True,
+            "challenge": None,
+            "message": "No active challenge"
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+
+# ============================================================================
 # EXPORT/IMPORT TOOLS
 # ============================================================================
 
 @mcp.tool()
-def export_progress(format: str = "json") -> dict:
+def export_progress(
+    format: str = "json",
+    include_sessions: bool = True,
+    include_evaluations: bool = True
+) -> dict:
     """
     Export learning progress to a file.
 
     Args:
-        format: Export format (json or md)
+        format: Export format (json, json.gz, md, tutor)
+        include_sessions: Include session history
+        include_evaluations: Include evaluation history
 
     Returns:
         Export result with file path
@@ -999,12 +1865,18 @@ def export_progress(format: str = "json") -> dict:
 
 
 @mcp.tool()
-def import_progress(filepath: str) -> dict:
+def import_progress(
+    filepath: str,
+    merge_strategy: str = "newer_wins",
+    create_backup: bool = True
+) -> dict:
     """
     Import learning progress from a file.
 
     Args:
         filepath: Path to import file
+        merge_strategy: How to handle conflicts (newer_wins, import_wins, existing_wins, merge)
+        create_backup: Create backup before import
 
     Returns:
         Import result with details
@@ -1014,11 +1886,44 @@ def import_progress(filepath: str) -> dict:
         from pathlib import Path
 
         importer = ProgressImporter(get_tutor_path())
-        result = importer.import_progress(filepath=Path(filepath))
+        result = importer.import_progress(
+            filepath=Path(filepath),
+            merge_strategy=merge_strategy,
+            create_backup=create_backup
+        )
 
         return {
             "success": result.success,
             "import_result": result.to_dict(),
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+        }
+
+
+@mcp.tool()
+def validate_import_file(filepath: str) -> dict:
+    """
+    Validate an import file without importing.
+
+    Args:
+        filepath: Path to import file
+
+    Returns:
+        Validation result with preview
+    """
+    try:
+        from learning import ProgressImporter
+        from pathlib import Path
+
+        importer = ProgressImporter(get_tutor_path())
+        result = importer.validate(filepath=Path(filepath))
+
+        return {
+            "success": True,
+            "validation": result.to_dict() if hasattr(result, 'to_dict') else result,
         }
     except Exception as e:
         return {
