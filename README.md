@@ -54,7 +54,8 @@
 
 ```bash
 # In Claude Code, run:
-/plugins:install tutor
+/plugin marketplace add hsantos/tutor-plugin
+/plugin install tutor@hsantos-tutor-plugin
 ```
 
 The plugin will be installed automatically with all dependencies.
@@ -65,14 +66,14 @@ If you have the plugin cloned locally:
 
 ```bash
 # In Claude Code, run:
-/plugins:install /path/to/tutor-plugin
+/plugin install /path/to/tutor-plugin
 ```
 
 ### Option C: From GitHub URL
 
 ```bash
 # In Claude Code, run:
-/plugins:install https://github.com/hsantos/tutor-plugin
+/plugin install https://github.com/hsantos/tutor-plugin
 ```
 
 ### Verify Installation
@@ -118,7 +119,7 @@ git clone https://github.com/hsantos/tutor-plugin
 
 **Plugin not found?**
 ```bash
-/plugins:list  # Check installed plugins
+/plugin list  # Check installed plugins
 ```
 
 **Server not starting?**
