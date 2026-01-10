@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://img.shields.io/badge/version-3.0.0-blue?style=for-the-badge" alt="Version">
+  <img src="https://img.shields.io/badge/version-3.1.0-blue?style=for-the-badge" alt="Version">
   <img src="https://img.shields.io/badge/license-MIT-green?style=for-the-badge" alt="License">
   <img src="https://img.shields.io/badge/python-3.10+-yellow?style=for-the-badge" alt="Python">
   <img src="https://img.shields.io/badge/MCP-FastMCP-orange?style=for-the-badge" alt="MCP">
@@ -8,7 +8,7 @@
 <h1 align="center">Tutor Plugin for Claude Code</h1>
 
 <p align="center">
-  <strong>AI-powered tutoring with adaptive learning, exam preparation, and smart study planning.</strong>
+  <strong>AI-powered tutoring with adaptive learning, project-based learning, exam preparation, and smart study planning.</strong>
 </p>
 
 <p align="center">
@@ -169,6 +169,16 @@ The tutor adapts to your learning situation:
 | **Professional** | Work skills training |
 | **Language** | Learning new languages |
 | **Exam Prep** | Competitive exams, standardized tests |
+| **Project** | Learn while building something real |
+
+### Project-Based Learning (New in 3.1.0)
+
+When you choose the **Project** context, the tutor:
+- Asks what you want to build and with what technologies
+- Generates a learning plan based on what your project needs
+- Shows progress as **capabilities** ("Your app can now do X")
+- Every lesson is contextualized to YOUR project
+- Exercises = building parts of your project
 
 ## Commands
 
@@ -179,6 +189,7 @@ The tutor adapts to your learning situation:
 | `/tutor` | Smart dashboard — your daily entry point |
 | `/tutor:init` | Initialize a new learning project |
 | `/tutor:learn [topic]` | Start or continue a lesson |
+| `/tutor:next` | Get the recommended next action (adapts to context) |
 | `/tutor:exercise [level]` | Practice (basic / intermediate / advanced / challenge) |
 | `/tutor:progress` | View statistics and recommendations |
 
@@ -342,7 +353,7 @@ The tutor adapts content presentation:
 
 ## MCP Tools
 
-The plugin exposes 40+ tools via MCP:
+The plugin exposes 45+ tools via MCP:
 
 <details>
 <summary>View all tools</summary>
@@ -387,6 +398,11 @@ The plugin exposes 40+ tools via MCP:
 - `check_achievements` — Check for new achievements
 - `get_gamification_progress` — Get XP, level, badges
 - `get_current_challenge` — Get weekly challenge
+
+### Project-Based Learning (New in 3.1.0)
+- `get_project_status` — Get project info and milestones
+- `get_project_capabilities` — What your project can do now
+- `get_next_build_task` — Next task to build
 
 </details>
 

@@ -26,6 +26,7 @@ The user wants to initialize a new tutoring project in the current directory.
      [6] Professional Training (work skills)
      [7] Language Learning
      [8] Exam Preparation (competitive exams)
+     [9] Build a Project (learn while building)
    ```
 
 3. **Based on context, gather specific information**:
@@ -85,6 +86,43 @@ d) Current phase:
    [5] Analysis
    [6] Writing
 ```
+
+### For PROJECT context:
+
+```
+PROJECT SETUP
+=============
+
+a) What do you want to build?
+   [Free text: e.g., "A REST API for personal finances"]
+
+b) What should it be able to do when finished?
+   [Free text: e.g., "Track expenses, generate reports, set budgets"]
+
+c) What technologies do you want to use?
+   [Free text: e.g., "Python, FastAPI, PostgreSQL"]
+
+d) For each technology, what's your current level?
+   [1] Never used
+   [2] Basic (tutorials)
+   [3] Intermediate (built something)
+   [4] Advanced (professional experience)
+
+e) Do you have a deadline? [Y/n]
+   If yes: What date? [DD/MM/YYYY]
+
+f) How much time can you dedicate per week?
+   [1] Casual: 3-5 hours/week
+   [2] Regular: 6-10 hours/week
+   [3] Intensive: 10+ hours/week
+```
+
+After gathering this info:
+1. Generate a learning plan (syllabus_units) based on the project requirements
+2. Identify what the user needs to learn for each part of the project
+3. Organize into milestones (significant achievements)
+4. Each unit should have `why_for_goal` explaining relevance to the project
+5. Mark key units as `is_milestone: true`
 
 ### For OTHER contexts:
 

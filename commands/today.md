@@ -7,6 +7,8 @@ allowed-tools: Read, Write, Bash
 
 The user wants to see their personalized study dashboard. This is the **main entry point** for daily study.
 
+**IMPORTANT**: The dashboard adapts to the learning context (university, project, self-taught, etc.). Read the context from config and display accordingly.
+
 ## Your Task
 
 1. **Read configuration and progress files**:
@@ -116,6 +118,106 @@ The user wants to see their personalized study dashboard. This is the **main ent
   [S] Exam simulation
   [P] View full plan
   [?] More options
+
+================================================================================
+```
+
+### For PROJECT context (Spanish):
+```
+================================================================================
+                      API DE FINANZAS PERSONALES
+================================================================================
+
+  TU PROYECTO PUEDE:
+  ────────────────────────────────────────────────────────────────────────────
+  ✓ Responder a peticiones HTTP
+  ✓ Conectarse a la base de datos
+  ✓ Listar gastos (GET /gastos)
+
+  PRÓXIMAMENTE PODRÁ:
+  → Crear gastos (POST /gastos)        ← SIGUIENTE PASO
+
+  PROGRESO
+  ────────────────────────────────────────────────────────────────────────────
+  Milestone 1: Setup        [████████████████████] 100% ✓
+  Milestone 2: Base de Datos [████████████████░░░░] 80%
+  Milestone 3: CRUD         [████░░░░░░░░░░░░░░░░] 20%  ← AQUÍ ESTÁS
+  Milestone 4: Reportes     [░░░░░░░░░░░░░░░░░░░░] 0%
+
+  Racha: 3 días | XP: 450 | Nivel: 4
+
+  PARA HOY
+  ────────────────────────────────────────────────────────────────────────────
+
+  1. Repaso rápido (2 conceptos vencidos)                         5 min
+     → SQL queries, HTTP methods
+
+  2. CONSTRUIR: Endpoint POST /gastos                            45 min
+     → Aprenderás: validación con Pydantic, INSERT en SQL
+     → Después de esto tu API podrá guardar gastos nuevos
+
+  Tiempo total estimado: ~50 min
+
+  SIGUIENTE PASO
+  ────────────────────────────────────────────────────────────────────────────
+
+  📍 Crear endpoint POST /gastos
+
+  ¿POR QUÉ ESTO?
+  Sin esto, los usuarios no pueden agregar gastos. Es la segunda
+  operación más importante de tu API después de listar.
+
+  ¿LISTO? Escribe /tutor:next para empezar a construir.
+
+================================================================================
+```
+
+### For PROJECT context (English):
+```
+================================================================================
+                      PERSONAL FINANCE API
+================================================================================
+
+  YOUR PROJECT CAN:
+  ────────────────────────────────────────────────────────────────────────────
+  ✓ Respond to HTTP requests
+  ✓ Connect to database
+  ✓ List expenses (GET /expenses)
+
+  COMING NEXT:
+  → Create expenses (POST /expenses)    ← NEXT STEP
+
+  PROGRESS
+  ────────────────────────────────────────────────────────────────────────────
+  Milestone 1: Setup        [████████████████████] 100% ✓
+  Milestone 2: Database     [████████████████░░░░] 80%
+  Milestone 3: CRUD         [████░░░░░░░░░░░░░░░░] 20%  ← YOU ARE HERE
+  Milestone 4: Reports      [░░░░░░░░░░░░░░░░░░░░] 0%
+
+  Streak: 3 days | XP: 450 | Level: 4
+
+  FOR TODAY
+  ────────────────────────────────────────────────────────────────────────────
+
+  1. Quick review (2 concepts due)                                5 min
+     → SQL queries, HTTP methods
+
+  2. BUILD: POST /expenses endpoint                              45 min
+     → You'll learn: Pydantic validation, SQL INSERT
+     → After this your API will be able to save new expenses
+
+  Total estimated time: ~50 min
+
+  NEXT STEP
+  ────────────────────────────────────────────────────────────────────────────
+
+  📍 Create POST /expenses endpoint
+
+  WHY THIS?
+  Without this, users can't add expenses. It's the second
+  most important operation in your API after listing.
+
+  READY? Type /tutor:next to start building.
 
 ================================================================================
 ```

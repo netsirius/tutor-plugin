@@ -35,6 +35,7 @@ ehthumbs.db
 .tutor/
 lessons/
 projects/
+docs/
 
 # Logs
 *.log

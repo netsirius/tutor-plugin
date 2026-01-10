@@ -1932,6 +1932,160 @@ def validate_import_file(filepath: str) -> dict:
         }
 
 
+# ============================================================================
+# PROJECT-BASED LEARNING TOOLS
+# ============================================================================
+
+@mcp.tool()
+def get_project_status() -> dict:
+    """
+    Get the current project status for project-based learning context.
+
+    Returns:
+        Project info including name, objective, milestones, and current progress
+    """
+    tutor_path = get_tutor_path()
+    config = load_json(tutor_path / "config.json")
+    university_config = load_json(tutor_path / "university_config.json")
+    topic_status = load_json(tutor_path / "topic_status.json")
+
+    if config.get("context") != "project":
+        return {
+            "is_project": False,
+            "message": "Current context is not a project"
+        }
+
+    subject = university_config.get("subject", {})
+    syllabus = university_config.get("syllabus_units", [])
+
+    # Calculate milestone progress
+    milestones = {}
+    for unit in syllabus:
+        if unit.get("is_milestone"):
+            milestone_id = unit.get("id")
+            status = topic_status.get(milestone_id, "new")
+            milestones[milestone_id] = {
+                "name": unit.get("name"),
+                "deliverable": unit.get("deliverable"),
+                "status": status
+            }
+
+    # Calculate overall progress
+    total_units = len(syllabus)
+    completed = sum(1 for u in syllabus if topic_status.get(u.get("id")) in ["learned", "mastered"])
+
+    return {
+        "is_project": True,
+        "project_name": subject.get("name"),
+        "objective": subject.get("objective"),
+        "technologies": subject.get("technologies", []),
+        "progress_percentage": round((completed / total_units * 100) if total_units > 0 else 0, 1),
+        "milestones": milestones,
+        "units_total": total_units,
+        "units_completed": completed,
+    }
+
+
+@mcp.tool()
+def get_project_capabilities() -> dict:
+    """
+    Get what the project can currently do based on completed units.
+
+    Returns:
+        List of capabilities (deliverables) from completed units
+    """
+    tutor_path = get_tutor_path()
+    config = load_json(tutor_path / "config.json")
+    university_config = load_json(tutor_path / "university_config.json")
+    topic_status = load_json(tutor_path / "topic_status.json")
+
+    if config.get("context") != "project":
+        return {
+            "is_project": False,
+            "capabilities": []
+        }
+
+    syllabus = university_config.get("syllabus_units", [])
+
+    capabilities = []
+    next_capability = None
+
+    for unit in sorted(syllabus, key=lambda x: x.get("order", 0)):
+        unit_id = unit.get("id")
+        status = topic_status.get(unit_id, "new")
+        deliverable = unit.get("deliverable")
+
+        if deliverable:
+            if status in ["learned", "mastered"]:
+                capabilities.append(deliverable)
+            elif next_capability is None:
+                next_capability = deliverable
+
+    return {
+        "is_project": True,
+        "current_capabilities": capabilities,
+        "next_capability": next_capability,
+    }
+
+
+@mcp.tool()
+def get_next_build_task() -> dict:
+    """
+    Get the next task to build in the project.
+
+    Returns:
+        Next task with its details, why it matters, and what user will learn
+    """
+    tutor_path = get_tutor_path()
+    config = load_json(tutor_path / "config.json")
+    university_config = load_json(tutor_path / "university_config.json")
+    topic_status = load_json(tutor_path / "topic_status.json")
+
+    if config.get("context") != "project":
+        return {
+            "is_project": False,
+            "task": None
+        }
+
+    syllabus = university_config.get("syllabus_units", [])
+
+    # Find first incomplete task respecting prerequisites
+    for unit in sorted(syllabus, key=lambda x: x.get("order", 0)):
+        unit_id = unit.get("id")
+        status = topic_status.get(unit_id, "new")
+
+        if status in ["learned", "mastered"]:
+            continue
+
+        # Check prerequisites
+        prereqs = unit.get("prerequisites", [])
+        prereqs_met = all(
+            topic_status.get(p) in ["learned", "mastered"]
+            for p in prereqs
+        )
+
+        if prereqs_met:
+            return {
+                "is_project": True,
+                "task": {
+                    "id": unit_id,
+                    "name": unit.get("name"),
+                    "description": unit.get("description"),
+                    "why_for_goal": unit.get("why_for_goal"),
+                    "deliverable": unit.get("deliverable"),
+                    "estimated_hours": unit.get("estimated_hours"),
+                    "is_milestone": unit.get("is_milestone", False),
+                    "status": status,
+                }
+            }
+
+    return {
+        "is_project": True,
+        "task": None,
+        "message": "All tasks completed! Project is done."
+    }
+
+
 # Run the server
 if __name__ == "__main__":
     mcp.run()

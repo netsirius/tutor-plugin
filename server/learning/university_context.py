@@ -8,7 +8,7 @@ Handles university-specific learning contexts including:
 - Different learning contexts (university, research, certification, etc.)
 """
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, fields
 from datetime import datetime, date, timedelta
 from enum import Enum
 from pathlib import Path
@@ -26,6 +26,7 @@ class LearningContext(Enum):
     PROFESSIONAL = "professional"
     LANGUAGE = "language"
     EXAM_PREP = "exam_prep"  # Oposiciones, selectividad
+    PROJECT = "project"  # Learn by building a project
 
 
 class LearningStyle(Enum):
@@ -58,13 +59,17 @@ class TopicStatus(Enum):
 
 @dataclass
 class Subject:
-    """Represents a university subject or course."""
+    """Represents a university subject, course, or project."""
     name: str
     code: Optional[str] = None
     professor: Optional[str] = None
     semester: Optional[str] = None
     credits: Optional[int] = None
     description: Optional[str] = None
+    # Project-specific fields
+    objective: Optional[str] = None  # What the project should achieve
+    technologies: list[str] = field(default_factory=list)  # Technologies involved
+    skill_levels: dict[str, str] = field(default_factory=dict)  # User level per tech
 
     def to_dict(self) -> dict:
         return {
@@ -74,11 +79,17 @@ class Subject:
             "semester": self.semester,
             "credits": self.credits,
             "description": self.description,
+            "objective": self.objective,
+            "technologies": self.technologies,
+            "skill_levels": self.skill_levels,
         }
 
     @classmethod
     def from_dict(cls, data: dict) -> "Subject":
-        return cls(**data)
+        # Handle older configs without new fields
+        valid_fields = {f.name for f in fields(cls)}
+        filtered_data = {k: v for k, v in data.items() if k in valid_fields}
+        return cls(**filtered_data)
 
 
 @dataclass
@@ -144,6 +155,10 @@ class SyllabusUnit:
     prerequisites: list[str] = field(default_factory=list)
     topics: list[str] = field(default_factory=list)
     resources: list[str] = field(default_factory=list)
+    # Context-aware fields
+    why_for_goal: Optional[str] = None  # Why this matters for user's goal
+    deliverable: Optional[str] = None  # What user can do/build after this
+    is_milestone: bool = False  # If completing this is a significant achievement
 
     def to_dict(self) -> dict:
         return {
@@ -156,11 +171,17 @@ class SyllabusUnit:
             "prerequisites": self.prerequisites,
             "topics": self.topics,
             "resources": self.resources,
+            "why_for_goal": self.why_for_goal,
+            "deliverable": self.deliverable,
+            "is_milestone": self.is_milestone,
         }
 
     @classmethod
     def from_dict(cls, data: dict) -> "SyllabusUnit":
-        return cls(**data)
+        # Handle older configs without new fields
+        valid_fields = {f.name for f in fields(cls)}
+        filtered_data = {k: v for k, v in data.items() if k in valid_fields}
+        return cls(**filtered_data)
 
 
 @dataclass

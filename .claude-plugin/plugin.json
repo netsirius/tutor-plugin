@@ -1,7 +1,7 @@
 {
   "name": "tutor",
-  "version": "3.0.0",
-  "description": "AI-powered tutoring with adaptive learning, exam preparation, and smart study planning. Supports university subjects, research, certifications, and self-learning. Features spaced repetition (SM-2), exam simulations, calendar export, and learning style adaptation.",
+  "version": "3.1.0",
+  "description": "AI-powered tutoring with adaptive learning, project-based learning, exam preparation, and smart study planning. Supports university subjects, research, certifications, projects, and self-learning. Features spaced repetition (SM-2), contextual teaching, exam simulations, calendar export, and learning style adaptation.",
   "author": {
     "name": "hsantos"
   },
@@ -16,7 +16,8 @@
     "study",
     "spaced-repetition",
     "adaptive-learning",
-    "programming"
+    "programming",
+    "project-based-learning"
   ],
   "agents": [
     "./agents/tutor.md",
@@ -30,6 +31,7 @@
     "./commands/init.md",
     "./commands/today.md",
     "./commands/learn.md",
+    "./commands/next.md",
     "./commands/exercise.md",
     "./commands/progress.md",
     "./commands/syllabus.md",
