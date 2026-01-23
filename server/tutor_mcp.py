@@ -1937,6 +1937,533 @@ def validate_import_file(filepath: str) -> dict:
 # ============================================================================
 
 @mcp.tool()
+def initialize_project(
+    name: str,
+    description: str,
+    objective: str,
+    project_type: str = "custom",
+    primary_language: str = "",
+    technologies: list[str] = None,
+    target_skills: list[str] = None,
+    difficulty_level: str = "intermediate",
+    estimated_hours: float = 20.0,
+    use_template: bool = True,
+) -> dict:
+    """
+    Initialize a new project for project-based learning.
+
+    Learn by building a complete project from start to finish. The project
+    will be broken down into tasks that teach concepts progressively.
+
+    Args:
+        name: Project name (e.g., "Personal Finance API")
+        description: Brief project description
+        objective: What the project achieves when complete
+        project_type: Type of project (web_backend, web_frontend, web_fullstack,
+                     cli, library, mobile, data_science, game, devops, microservices, custom)
+        primary_language: Main programming language (python, javascript, typescript, etc.)
+        technologies: List of technologies to use (e.g., ["FastAPI", "PostgreSQL"])
+        target_skills: Skills to learn (e.g., ["REST APIs", "SQL", "Authentication"])
+        difficulty_level: Overall difficulty (beginner, intermediate, advanced)
+        estimated_hours: Estimated time to complete the project
+        use_template: Whether to use predefined tasks for the project type
+
+    Returns:
+        Initialized project configuration with tasks and milestones
+    """
+    try:
+        from learning import (
+            ProjectManager, ProjectType, TaskType, TaskDifficulty,
+            BuildTask, Milestone, get_project_template
+        )
+
+        tutor_path = get_tutor_path()
+        manager = ProjectManager(tutor_path)
+
+        # Map string to enum
+        project_type_map = {
+            "web_backend": ProjectType.WEB_BACKEND,
+            "web_frontend": ProjectType.WEB_FRONTEND,
+            "web_fullstack": ProjectType.WEB_FULLSTACK,
+            "cli": ProjectType.CLI,
+            "library": ProjectType.LIBRARY,
+            "mobile": ProjectType.MOBILE,
+            "data_science": ProjectType.DATA_SCIENCE,
+            "game": ProjectType.GAME,
+            "devops": ProjectType.DEVOPS,
+            "microservices": ProjectType.MICROSERVICES,
+            "custom": ProjectType.CUSTOM,
+        }
+
+        proj_type = project_type_map.get(project_type, ProjectType.CUSTOM)
+
+        # Initialize the project
+        project = manager.initialize_project(
+            name=name,
+            description=description,
+            objective=objective,
+            project_type=proj_type,
+            primary_language=primary_language,
+            technologies=technologies or [],
+            target_skills=target_skills or [],
+            difficulty_level=difficulty_level,
+            estimated_hours=estimated_hours,
+        )
+
+        # Add template tasks if requested
+        tasks_added = 0
+        milestones_added = 0
+
+        if use_template and proj_type != ProjectType.CUSTOM:
+            template = get_project_template(proj_type, primary_language)
+
+            # Add tasks from template
+            for task_data in template.get("tasks", []):
+                task_type_map = {
+                    "feature": TaskType.FEATURE,
+                    "setup": TaskType.SETUP,
+                    "test": TaskType.TEST,
+                    "refactor": TaskType.REFACTOR,
+                    "documentation": TaskType.DOCUMENTATION,
+                    "integration": TaskType.INTEGRATION,
+                    "optimization": TaskType.OPTIMIZATION,
+                    "security": TaskType.SECURITY,
+                    "deploy": TaskType.DEPLOY,
+                    "bugfix": TaskType.BUGFIX,
+                }
+
+                difficulty_map = {
+                    "beginner": TaskDifficulty.BEGINNER,
+                    "easy": TaskDifficulty.EASY,
+                    "medium": TaskDifficulty.MEDIUM,
+                    "hard": TaskDifficulty.HARD,
+                    "expert": TaskDifficulty.EXPERT,
+                }
+
+                task = BuildTask(
+                    id=task_data["id"],
+                    name=task_data["name"],
+                    description=task_data.get("description", ""),
+                    task_type=task_type_map.get(task_data.get("task_type", "feature"), TaskType.FEATURE),
+                    difficulty=difficulty_map.get(task_data.get("difficulty", "medium"), TaskDifficulty.MEDIUM),
+                    deliverable=task_data.get("deliverable", ""),
+                    success_criteria=task_data.get("success_criteria", []),
+                    prerequisites=task_data.get("prerequisites", []),
+                    order=task_data.get("order", 0),
+                    is_milestone=task_data.get("is_milestone", False),
+                    is_optional=task_data.get("is_optional", False),
+                )
+                manager.add_task(task)
+                tasks_added += 1
+
+            # Add milestones from template
+            for milestone_data in template.get("milestones", []):
+                milestone = Milestone(
+                    id=milestone_data["id"],
+                    name=milestone_data["name"],
+                    description=milestone_data.get("description", ""),
+                    required_tasks=milestone_data.get("required_tasks", []),
+                    capabilities_unlocked=milestone_data.get("capabilities_unlocked", []),
+                    celebration_message=milestone_data.get("celebration_message", ""),
+                )
+                manager.add_milestone(milestone)
+                milestones_added += 1
+
+        # Update config.json to set context as project
+        config = load_json(tutor_path / "config.json") or {}
+        config["context"] = "project"
+        config["subject"] = name
+        save_json(tutor_path / "config.json", config)
+
+        return {
+            "success": True,
+            "project": project.to_dict(),
+            "tasks_added": tasks_added,
+            "milestones_added": milestones_added,
+            "message": f"Project '{name}' initialized with {tasks_added} tasks and {milestones_added} milestones.",
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+        }
+
+
+@mcp.tool()
+def add_project_task(
+    name: str,
+    description: str,
+    task_type: str = "feature",
+    difficulty: str = "medium",
+    deliverable: str = "",
+    success_criteria: list[str] = None,
+    prerequisites: list[str] = None,
+    estimated_minutes: int = 30,
+    is_milestone: bool = False,
+    is_optional: bool = False,
+    concepts_taught: list[str] = None,
+    hints: list[str] = None,
+) -> dict:
+    """
+    Add a custom task to the project.
+
+    Args:
+        name: Task name
+        description: What needs to be done
+        task_type: Type (feature, setup, test, refactor, documentation, integration,
+                  optimization, security, deploy, bugfix)
+        difficulty: Difficulty level (beginner, easy, medium, hard, expert)
+        deliverable: What user can do after completing this task
+        success_criteria: How to verify the task is complete
+        prerequisites: List of task IDs that must be completed first
+        estimated_minutes: How long the task should take
+        is_milestone: Whether this is a major achievement
+        is_optional: Whether the task can be skipped
+        concepts_taught: Concepts learned from this task
+        hints: Progressive hints to help if stuck
+
+    Returns:
+        Added task details
+    """
+    try:
+        from learning import ProjectManager, TaskType, TaskDifficulty, BuildTask
+
+        manager = ProjectManager(get_tutor_path())
+
+        if not manager.is_initialized:
+            return {
+                "success": False,
+                "error": "No project initialized. Use initialize_project first.",
+            }
+
+        task_type_map = {
+            "feature": TaskType.FEATURE,
+            "setup": TaskType.SETUP,
+            "test": TaskType.TEST,
+            "refactor": TaskType.REFACTOR,
+            "documentation": TaskType.DOCUMENTATION,
+            "integration": TaskType.INTEGRATION,
+            "optimization": TaskType.OPTIMIZATION,
+            "security": TaskType.SECURITY,
+            "deploy": TaskType.DEPLOY,
+            "bugfix": TaskType.BUGFIX,
+        }
+
+        difficulty_map = {
+            "beginner": TaskDifficulty.BEGINNER,
+            "easy": TaskDifficulty.EASY,
+            "medium": TaskDifficulty.MEDIUM,
+            "hard": TaskDifficulty.HARD,
+            "expert": TaskDifficulty.EXPERT,
+        }
+
+        # Generate task ID
+        task_id = f"task_{datetime.now().strftime('%Y%m%d%H%M%S')}"
+
+        task = BuildTask(
+            id=task_id,
+            name=name,
+            description=description,
+            task_type=task_type_map.get(task_type, TaskType.FEATURE),
+            difficulty=difficulty_map.get(difficulty, TaskDifficulty.MEDIUM),
+            deliverable=deliverable,
+            success_criteria=success_criteria or [],
+            prerequisites=prerequisites or [],
+            estimated_minutes=estimated_minutes,
+            is_milestone=is_milestone,
+            is_optional=is_optional,
+            concepts_taught=concepts_taught or [],
+            hints=hints or [],
+        )
+
+        manager.add_task(task)
+
+        return {
+            "success": True,
+            "task": task.to_dict(),
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+        }
+
+
+@mcp.tool()
+def start_build_task(task_id: str = None) -> dict:
+    """
+    Start working on a project task. If no task_id provided, starts the next available task.
+
+    Args:
+        task_id: Specific task ID to start (optional)
+
+    Returns:
+        Task details with guidance on how to complete it
+    """
+    try:
+        from learning import ProjectManager
+
+        manager = ProjectManager(get_tutor_path())
+
+        if not manager.is_initialized:
+            return {
+                "success": False,
+                "error": "No project initialized.",
+            }
+
+        # Get task to start
+        if task_id:
+            task = manager.start_task(task_id)
+        else:
+            next_task = manager.get_next_task()
+            if not next_task:
+                return {
+                    "success": True,
+                    "task": None,
+                    "message": "All tasks completed! Project is done.",
+                }
+            task = manager.start_task(next_task.id)
+
+        return {
+            "success": True,
+            "task": task.to_dict(),
+            "guidance": {
+                "what_to_build": task.deliverable,
+                "success_criteria": task.success_criteria,
+                "hints": task.hints[:1] if task.hints else [],  # First hint only
+                "concepts": task.concepts_taught,
+            },
+        }
+    except ValueError as e:
+        return {
+            "success": False,
+            "error": str(e),
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+        }
+
+
+@mcp.tool()
+def complete_build_task(task_id: str, feedback: str = "") -> dict:
+    """
+    Mark a project task as completed.
+
+    Args:
+        task_id: ID of the completed task
+        feedback: Optional feedback about the completion
+
+    Returns:
+        Completion result with milestones achieved and next task
+    """
+    try:
+        from learning import ProjectManager
+
+        manager = ProjectManager(get_tutor_path())
+
+        if not manager.is_initialized:
+            return {
+                "success": False,
+                "error": "No project initialized.",
+            }
+
+        result = manager.complete_task(task_id, feedback)
+
+        return {
+            "success": True,
+            **result,
+        }
+    except ValueError as e:
+        return {
+            "success": False,
+            "error": str(e),
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+        }
+
+
+@mcp.tool()
+def get_task_hint(task_id: str, hint_level: int = 0) -> dict:
+    """
+    Get a hint for a task. Hints are progressive - request higher levels for more help.
+
+    Args:
+        task_id: Task ID to get hint for
+        hint_level: Level of hint (0=subtle, 1=moderate, 2=detailed)
+
+    Returns:
+        Hint for the specified level
+    """
+    try:
+        from learning import ProjectManager
+
+        manager = ProjectManager(get_tutor_path())
+
+        if not manager.is_initialized:
+            return {
+                "success": False,
+                "error": "No project initialized.",
+            }
+
+        task = manager.get_task_by_id(task_id)
+        if not task:
+            return {
+                "success": False,
+                "error": f"Task not found: {task_id}",
+            }
+
+        hints = task.hints
+        if not hints:
+            return {
+                "success": True,
+                "hint": None,
+                "message": "No hints available for this task.",
+            }
+
+        hint_index = min(hint_level, len(hints) - 1)
+
+        return {
+            "success": True,
+            "hint": hints[hint_index],
+            "hint_level": hint_index,
+            "hints_remaining": len(hints) - hint_index - 1,
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+        }
+
+
+@mcp.tool()
+def record_architecture_decision(
+    title: str,
+    context: str,
+    decision: str,
+    alternatives: list[str] = None,
+    consequences: list[str] = None,
+    concepts_learned: list[str] = None,
+) -> dict:
+    """
+    Record an architecture decision made during the project.
+
+    Useful for tracking why certain choices were made and what was learned.
+
+    Args:
+        title: Decision title (e.g., "Use PostgreSQL for database")
+        context: Why this decision was needed
+        decision: What was decided
+        alternatives: Other options that were considered
+        consequences: Impact of the decision
+        concepts_learned: What concepts were learned from this decision
+
+    Returns:
+        Recorded architecture decision
+    """
+    try:
+        from learning import ProjectManager
+
+        manager = ProjectManager(get_tutor_path())
+
+        if not manager.is_initialized:
+            return {
+                "success": False,
+                "error": "No project initialized.",
+            }
+
+        adr = manager.record_architecture_decision(
+            title=title,
+            context=context,
+            decision=decision,
+            alternatives=alternatives,
+            consequences=consequences,
+            concepts_learned=concepts_learned,
+        )
+
+        return {
+            "success": True,
+            "decision": adr.to_dict(),
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+        }
+
+
+@mcp.tool()
+def get_project_roadmap() -> dict:
+    """
+    Get the project roadmap showing phases, tasks, and progress.
+
+    Returns:
+        Visual roadmap with phases, milestones, and task dependencies
+    """
+    try:
+        from learning import ProjectManager
+
+        manager = ProjectManager(get_tutor_path())
+
+        if not manager.is_initialized:
+            return {
+                "is_project": False,
+                "message": "No project initialized.",
+            }
+
+        roadmap = manager.get_roadmap()
+
+        return {
+            "success": True,
+            "roadmap": roadmap,
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+        }
+
+
+@mcp.tool()
+def get_build_log(limit: int = 20) -> dict:
+    """
+    Get the recent build log showing project activity.
+
+    Args:
+        limit: Maximum number of entries to return
+
+    Returns:
+        Recent build log entries
+    """
+    try:
+        from learning import ProjectManager
+
+        manager = ProjectManager(get_tutor_path())
+
+        if not manager.is_initialized:
+            return {
+                "success": False,
+                "error": "No project initialized.",
+            }
+
+        log = manager.get_build_log(limit)
+
+        return {
+            "success": True,
+            "entries": log,
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+        }
+
+
+@mcp.tool()
 def get_project_status() -> dict:
     """
     Get the current project status for project-based learning context.
@@ -1944,6 +2471,17 @@ def get_project_status() -> dict:
     Returns:
         Project info including name, objective, milestones, and current progress
     """
+    # Try new ProjectManager first
+    try:
+        from learning import ProjectManager
+
+        manager = ProjectManager(get_tutor_path())
+        if manager.is_initialized:
+            return manager.get_project_status()
+    except ImportError:
+        pass
+
+    # Fallback to legacy implementation
     tutor_path = get_tutor_path()
     config = load_json(tutor_path / "config.json")
     university_config = load_json(tutor_path / "university_config.json")
@@ -1994,6 +2532,28 @@ def get_project_capabilities() -> dict:
     Returns:
         List of capabilities (deliverables) from completed units
     """
+    # Try new ProjectManager first
+    try:
+        from learning import ProjectManager
+
+        manager = ProjectManager(get_tutor_path())
+        if manager.is_initialized:
+            status = manager.get_project_status()
+            capabilities = status.get("capabilities", [])
+
+            # Find next capability from next task
+            next_task = manager.get_next_task()
+            next_capability = next_task.deliverable if next_task else None
+
+            return {
+                "is_project": True,
+                "current_capabilities": capabilities,
+                "next_capability": next_capability,
+            }
+    except ImportError:
+        pass
+
+    # Fallback to legacy implementation
     tutor_path = get_tutor_path()
     config = load_json(tutor_path / "config.json")
     university_config = load_json(tutor_path / "university_config.json")
@@ -2036,6 +2596,34 @@ def get_next_build_task() -> dict:
     Returns:
         Next task with its details, why it matters, and what user will learn
     """
+    # Try new ProjectManager first
+    try:
+        from learning import ProjectManager
+
+        manager = ProjectManager(get_tutor_path())
+        if manager.is_initialized:
+            task = manager.get_next_task()
+            if task:
+                return {
+                    "is_project": True,
+                    "task": task.to_dict(),
+                    "guidance": {
+                        "what_to_build": task.deliverable,
+                        "success_criteria": task.success_criteria,
+                        "concepts": task.concepts_taught,
+                        "hints_available": len(task.hints) > 0,
+                    },
+                }
+            else:
+                return {
+                    "is_project": True,
+                    "task": None,
+                    "message": "All tasks completed! Project is done.",
+                }
+    except ImportError:
+        pass
+
+    # Fallback to legacy implementation
     tutor_path = get_tutor_path()
     config = load_json(tutor_path / "config.json")
     university_config = load_json(tutor_path / "university_config.json")
@@ -2075,6 +2663,11 @@ def get_next_build_task() -> dict:
                     "deliverable": unit.get("deliverable"),
                     "estimated_hours": unit.get("estimated_hours"),
                     "is_milestone": unit.get("is_milestone", False),
+                    "task_type": unit.get("task_type"),
+                    "difficulty": unit.get("difficulty"),
+                    "success_criteria": unit.get("success_criteria", []),
+                    "concepts_taught": unit.get("concepts_taught", []),
+                    "hints": unit.get("hints", []),
                     "status": status,
                 }
             }
@@ -2084,6 +2677,472 @@ def get_next_build_task() -> dict:
         "task": None,
         "message": "All tasks completed! Project is done."
     }
+
+
+# ============================================================================
+# PROJECT SUGGESTION TOOLS
+# ============================================================================
+
+@mcp.tool()
+def suggest_projects_by_skills(
+    skills_to_learn: list[str],
+    current_skills: list[str] = None,
+    difficulty: str = None,
+    max_hours: float = None,
+    limit: int = 4
+) -> dict:
+    """
+    Suggest portfolio-ready projects based on skills the user wants to learn.
+
+    Args:
+        skills_to_learn: Skills/technologies the user wants to learn
+                        (e.g., ["React", "REST APIs", "Authentication"])
+        current_skills: Skills the user already has (optional)
+        difficulty: Preferred difficulty level (beginner, intermediate, advanced, expert)
+        max_hours: Maximum hours the user can dedicate (optional)
+        limit: Maximum number of suggestions to return (default: 4)
+
+    Returns:
+        List of suggested projects with match scores and details
+    """
+    try:
+        from learning.project_suggestions import (
+            get_suggester,
+            DifficultyLevel
+        )
+
+        suggester = get_suggester()
+
+        # Parse difficulty if provided
+        diff_level = None
+        if difficulty:
+            try:
+                diff_level = DifficultyLevel(difficulty.lower())
+            except ValueError:
+                pass
+
+        suggestions = suggester.suggest_by_skills(
+            skills_to_learn=skills_to_learn,
+            current_skills=current_skills or [],
+            difficulty=diff_level,
+            max_hours=max_hours,
+            limit=limit
+        )
+
+        return {
+            "success": True,
+            "query": {
+                "skills_to_learn": skills_to_learn,
+                "current_skills": current_skills,
+                "difficulty": difficulty,
+                "max_hours": max_hours
+            },
+            "suggestions": suggestions,
+            "total_found": len(suggestions)
+        }
+
+    except ImportError as e:
+        return {
+            "success": False,
+            "error": f"Project suggestions module not available: {e}"
+        }
+
+
+@mcp.tool()
+def suggest_projects_by_career(
+    career_goal: str,
+    current_skills: list[str] = None,
+    difficulty: str = None,
+    limit: int = 4
+) -> dict:
+    """
+    Suggest portfolio-ready projects based on career goals.
+
+    Args:
+        career_goal: The career goal to prepare for. Options:
+                    - frontend_job: Frontend Developer position
+                    - backend_job: Backend Developer position
+                    - fullstack_job: Full Stack Developer position
+                    - data_engineer: Data Engineer position
+                    - ml_engineer: Machine Learning Engineer position
+                    - devops_engineer: DevOps/Platform Engineer position
+                    - mobile_developer: Mobile Developer position
+                    - freelance: Freelance/Consulting work
+                    - startup: Startup or founding a company
+                    - portfolio: Building an impressive portfolio
+                    - open_source: Contributing to open source
+                    - interview_prep: Technical interview preparation
+        current_skills: Skills the user already has (optional)
+        difficulty: Preferred difficulty level (beginner, intermediate, advanced, expert)
+        limit: Maximum number of suggestions (default: 4)
+
+    Returns:
+        List of suggested projects optimized for the career goal
+    """
+    try:
+        from learning.project_suggestions import (
+            get_suggester,
+            CareerGoal,
+            DifficultyLevel
+        )
+
+        suggester = get_suggester()
+
+        # Parse career goal
+        try:
+            goal = CareerGoal(career_goal.lower())
+        except ValueError:
+            return {
+                "success": False,
+                "error": f"Invalid career goal: {career_goal}",
+                "valid_goals": [g.value for g in CareerGoal]
+            }
+
+        # Parse difficulty if provided
+        diff_level = None
+        if difficulty:
+            try:
+                diff_level = DifficultyLevel(difficulty.lower())
+            except ValueError:
+                pass
+
+        suggestions = suggester.suggest_by_career_goal(
+            career_goal=goal,
+            current_skills=current_skills or [],
+            difficulty=diff_level,
+            limit=limit
+        )
+
+        return {
+            "success": True,
+            "query": {
+                "career_goal": career_goal,
+                "current_skills": current_skills,
+                "difficulty": difficulty
+            },
+            "suggestions": suggestions,
+            "total_found": len(suggestions),
+            "career_goal_description": {
+                "frontend_job": "Frontend Developer position",
+                "backend_job": "Backend Developer position",
+                "fullstack_job": "Full Stack Developer position",
+                "data_engineer": "Data Engineer position",
+                "ml_engineer": "Machine Learning Engineer position",
+                "devops_engineer": "DevOps/Platform Engineer position",
+                "mobile_developer": "Mobile Developer position",
+                "freelance": "Freelance/Consulting work",
+                "startup": "Startup or founding a company",
+                "portfolio": "Building an impressive portfolio",
+                "open_source": "Contributing to open source",
+                "interview_prep": "Technical interview preparation"
+            }.get(career_goal, career_goal)
+        }
+
+    except ImportError as e:
+        return {
+            "success": False,
+            "error": f"Project suggestions module not available: {e}"
+        }
+
+
+@mcp.tool()
+def suggest_portfolio_projects(
+    categories: list[str] = None,
+    current_skills: list[str] = None,
+    limit: int = 4
+) -> dict:
+    """
+    Suggest projects that will look impressive on a GitHub portfolio.
+
+    Args:
+        categories: Optional filter by skill categories. Options:
+                   - frontend, backend, fullstack, database, devops,
+                   - mobile, data_science, machine_learning, security,
+                   - testing, architecture, api_design, cloud, systems
+        current_skills: Skills the user already has (optional)
+        limit: Maximum number of suggestions (default: 4)
+
+    Returns:
+        List of portfolio-optimized project suggestions
+    """
+    try:
+        from learning.project_suggestions import (
+            get_suggester,
+            SkillCategory
+        )
+
+        suggester = get_suggester()
+
+        # Parse categories if provided
+        skill_categories = None
+        if categories:
+            skill_categories = []
+            for cat in categories:
+                try:
+                    skill_categories.append(SkillCategory(cat.lower()))
+                except ValueError:
+                    pass  # Skip invalid categories
+
+        suggestions = suggester.suggest_for_portfolio(
+            categories=skill_categories,
+            current_skills=current_skills or [],
+            limit=limit
+        )
+
+        return {
+            "success": True,
+            "query": {
+                "categories": categories,
+                "current_skills": current_skills
+            },
+            "suggestions": suggestions,
+            "total_found": len(suggestions),
+            "tips": [
+                "Include a live demo link if possible",
+                "Add clear README with screenshots",
+                "Include Docker/docker-compose for easy setup",
+                "Add CI/CD pipeline badges",
+                "Document your architecture decisions"
+            ]
+        }
+
+    except ImportError as e:
+        return {
+            "success": False,
+            "error": f"Project suggestions module not available: {e}"
+        }
+
+
+@mcp.tool()
+def get_learnable_skills() -> dict:
+    """
+    Get all skills that can be learned through available projects.
+
+    Returns:
+        Dictionary with primary skills, secondary skills, technologies, and concepts
+    """
+    try:
+        from learning.project_suggestions import get_suggester
+
+        suggester = get_suggester()
+        skills = suggester.list_all_skills()
+
+        return {
+            "success": True,
+            "skills": skills,
+            "summary": {
+                "primary_skills": len(skills.get("primary", [])),
+                "secondary_skills": len(skills.get("secondary", [])),
+                "technologies": len(skills.get("technologies", [])),
+                "concepts": len(skills.get("concepts", []))
+            }
+        }
+
+    except ImportError as e:
+        return {
+            "success": False,
+            "error": f"Project suggestions module not available: {e}"
+        }
+
+
+@mcp.tool()
+def get_career_goals() -> dict:
+    """
+    Get all supported career goals for project suggestions.
+
+    Returns:
+        List of career goals with descriptions
+    """
+    try:
+        from learning.project_suggestions import get_suggester
+
+        suggester = get_suggester()
+        goals = suggester.list_career_goals()
+
+        return {
+            "success": True,
+            "career_goals": goals
+        }
+
+    except ImportError as e:
+        return {
+            "success": False,
+            "error": f"Project suggestions module not available: {e}"
+        }
+
+
+@mcp.tool()
+def get_project_details(project_id: str) -> dict:
+    """
+    Get detailed information about a specific project from the catalog.
+
+    Args:
+        project_id: The project ID (e.g., "rest-api-auth", "react-dashboard")
+
+    Returns:
+        Full project details including features, skills, and stretch goals
+    """
+    try:
+        from learning.project_suggestions import get_suggester
+
+        suggester = get_suggester()
+        project = suggester.get_project_by_id(project_id)
+
+        if not project:
+            return {
+                "success": False,
+                "error": f"Project not found: {project_id}",
+                "available_projects": [p.id for p in suggester.catalog]
+            }
+
+        return {
+            "success": True,
+            "project": project.to_dict()
+        }
+
+    except ImportError as e:
+        return {
+            "success": False,
+            "error": f"Project suggestions module not available: {e}"
+        }
+
+
+@mcp.tool()
+def start_suggested_project(project_id: str) -> dict:
+    """
+    Initialize a learning project from a suggestion in the catalog.
+
+    This converts a catalog project suggestion into an active learning project
+    with tasks, milestones, and progress tracking.
+
+    Args:
+        project_id: The project ID from the catalog (e.g., "rest-api-auth")
+
+    Returns:
+        Initialization result with project details
+    """
+    try:
+        from learning.project_suggestions import get_suggester
+        from learning import ProjectManager
+
+        suggester = get_suggester()
+        project = suggester.get_project_by_id(project_id)
+
+        if not project:
+            return {
+                "success": False,
+                "error": f"Project not found: {project_id}"
+            }
+
+        # Map catalog project to initialize_project parameters
+        project_type_mapping = {
+            "backend": "web_backend",
+            "frontend": "web_frontend",
+            "fullstack": "fullstack",
+            "devops": "devops",
+            "mobile": "mobile",
+            "data_science": "data_science",
+            "machine_learning": "data_science",
+        }
+
+        # Determine project type from categories
+        project_type = "custom"
+        for cat in project.categories:
+            if cat.value in project_type_mapping:
+                project_type = project_type_mapping[cat.value]
+                break
+
+        # Calculate difficulty
+        difficulty_mapping = {
+            "beginner": "beginner",
+            "intermediate": "intermediate",
+            "advanced": "advanced",
+            "expert": "advanced"
+        }
+
+        # Initialize the project
+        manager = ProjectManager(get_tutor_path())
+        result = manager.initialize_project(
+            name=project.name,
+            description=project.description,
+            objective=project.real_world_use,
+            project_type=project_type,
+            primary_language=project.language,
+            technologies=project.technologies,
+            target_skills=project.primary_skills + project.secondary_skills,
+            difficulty_level=difficulty_mapping.get(project.difficulty.value, "intermediate"),
+            estimated_hours=project.estimated_hours,
+            use_template=True
+        )
+
+        # Also create the base config files
+        tutor_path = get_tutor_path()
+        tutor_path.mkdir(parents=True, exist_ok=True)
+
+        # Save config.json
+        config = {
+            "learning_language": "en",
+            "context": "project",
+            "subject_type": "programming",
+            "subject": project.name,
+            "level": project.difficulty.value,
+            "started_at": datetime.now().isoformat(),
+            "goals": project.suggested_features[:3],
+            "preferences": {
+                "explanation_style": "detailed",
+                "exercise_difficulty": "adaptive",
+                "show_hints": True,
+                "learning_style": "practical"
+            },
+            "source_project_id": project_id,
+        }
+        save_json(tutor_path / "config.json", config)
+
+        # Save progress.json
+        progress = {
+            "current_module": None,
+            "current_topic": None,
+            "modules": {},
+            "statistics": {
+                "total_time_minutes": 0,
+                "total_exercises_completed": 0,
+                "total_exercises_attempted": 0,
+                "average_score": 0,
+                "streak_days": 0,
+                "last_session": None
+            }
+        }
+        save_json(tutor_path / "progress.json", progress)
+
+        return {
+            "success": True,
+            "project": {
+                "name": project.name,
+                "tagline": project.tagline,
+                "description": project.description,
+                "technologies": project.technologies,
+                "primary_skills": project.primary_skills,
+                "estimated_hours": project.estimated_hours,
+                "suggested_features": project.suggested_features,
+                "stretch_goals": project.stretch_goals,
+            },
+            "next_steps": [
+                "Run /tutor:project to see your project dashboard",
+                "Run /tutor:build to start your first task",
+                f"Technologies to use: {', '.join(project.technologies)}"
+            ]
+        }
+
+    except ImportError as e:
+        return {
+            "success": False,
+            "error": f"Project module not available: {e}"
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e)
+        }
 
 
 # Run the server

@@ -1,7 +1,7 @@
 {
   "name": "tutor",
-  "version": "3.1.0",
-  "description": "AI-powered tutoring with adaptive learning, project-based learning, exam preparation, and smart study planning. Supports university subjects, research, certifications, projects, and self-learning. Features spaced repetition (SM-2), contextual teaching, exam simulations, calendar export, and learning style adaptation.",
+  "version": "3.3.0",
+  "description": "AI-powered tutoring with intelligent project suggestions, project-based learning, adaptive learning, exam preparation, and smart study planning. Specify what you want to learn or prepare for (job interviews, portfolio) and get AI-suggested portfolio-ready projects. Learn by building complete projects with progressive tasks, milestones, and architecture decisions. Supports university subjects, research, certifications, projects, and self-learning. Features spaced repetition (SM-2), contextual teaching, exam simulations, calendar export, and learning style adaptation.",
   "author": {
     "name": "hsantos"
   },
@@ -40,7 +40,10 @@
     "./commands/extend.md",
     "./commands/calendar.md",
     "./commands/review.md",
-    "./commands/curriculum.md"
+    "./commands/curriculum.md",
+    "./commands/build.md",
+    "./commands/project.md",
+    "./commands/suggest-project.md"
   ],
   "mcpServers": "./.mcp.json"
 }

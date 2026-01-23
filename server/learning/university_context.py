@@ -160,6 +160,19 @@ class SyllabusUnit:
     deliverable: Optional[str] = None  # What user can do/build after this
     is_milestone: bool = False  # If completing this is a significant achievement
 
+    # Project-specific fields
+    task_type: Optional[str] = None  # feature, setup, test, refactor, deploy, etc.
+    difficulty: Optional[str] = None  # beginner, easy, medium, hard, expert
+    success_criteria: list[str] = field(default_factory=list)  # How to verify completion
+    concepts_taught: list[str] = field(default_factory=list)  # Concepts learned
+    skills_practiced: list[str] = field(default_factory=list)  # Skills used
+    hints: list[str] = field(default_factory=list)  # Progressive hints
+    code_snippets: dict[str, str] = field(default_factory=dict)  # language -> example
+    common_mistakes: list[str] = field(default_factory=list)  # Pitfalls to avoid
+    files_to_create: list[str] = field(default_factory=list)  # Files task creates
+    files_to_modify: list[str] = field(default_factory=list)  # Files task modifies
+    is_optional: bool = False  # If task can be skipped
+
     def to_dict(self) -> dict:
         return {
             "id": self.id,
@@ -174,6 +187,17 @@ class SyllabusUnit:
             "why_for_goal": self.why_for_goal,
             "deliverable": self.deliverable,
             "is_milestone": self.is_milestone,
+            "task_type": self.task_type,
+            "difficulty": self.difficulty,
+            "success_criteria": self.success_criteria,
+            "concepts_taught": self.concepts_taught,
+            "skills_practiced": self.skills_practiced,
+            "hints": self.hints,
+            "code_snippets": self.code_snippets,
+            "common_mistakes": self.common_mistakes,
+            "files_to_create": self.files_to_create,
+            "files_to_modify": self.files_to_modify,
+            "is_optional": self.is_optional,
         }
 
     @classmethod

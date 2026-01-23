@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://img.shields.io/badge/version-3.1.0-blue?style=for-the-badge" alt="Version">
+  <img src="https://img.shields.io/badge/version-3.3.0-blue?style=for-the-badge" alt="Version">
   <img src="https://img.shields.io/badge/license-MIT-green?style=for-the-badge" alt="License">
   <img src="https://img.shields.io/badge/python-3.10+-yellow?style=for-the-badge" alt="Python">
   <img src="https://img.shields.io/badge/MCP-FastMCP-orange?style=for-the-badge" alt="MCP">
@@ -8,13 +8,14 @@
 <h1 align="center">Tutor Plugin for Claude Code</h1>
 
 <p align="center">
-  <strong>AI-powered tutoring with adaptive learning, project-based learning, exam preparation, and smart study planning.</strong>
+  <strong>AI-powered tutoring with intelligent project suggestions, project-based learning, adaptive learning, exam preparation, and smart study planning.</strong>
 </p>
 
 <p align="center">
   <a href="#features">Features</a> •
   <a href="#installation">Installation</a> •
   <a href="#quick-start">Quick Start</a> •
+  <a href="#project-based-learning">Project-Based Learning</a> •
   <a href="#learning-contexts">Learning Contexts</a> •
   <a href="#commands">Commands</a> •
   <a href="#exam-preparation">Exam Preparation</a> •
@@ -24,6 +25,12 @@
 ---
 
 ## Features
+
+### AI Project Suggestions (New in 3.3.0)
+- **Skill-Based Suggestions** — Tell the AI what you want to learn, get portfolio-ready projects
+- **Career Goal Matching** — Preparing for interviews? Get projects that cover common topics
+- **Portfolio Optimization** — Projects designed to impress on GitHub
+- **Multiple Options** — Choose from 2-4 suggested projects tailored to your goals
 
 ### Core Learning
 - **Any Subject** — Programming, math, sciences, languages, history, and more
@@ -171,14 +178,27 @@ The tutor adapts to your learning situation:
 | **Exam Prep** | Competitive exams, standardized tests |
 | **Project** | Learn while building something real |
 
-### Project-Based Learning (New in 3.1.0)
+### Project-Based Learning (Enhanced in 3.2.0)
 
-When you choose the **Project** context, the tutor:
-- Asks what you want to build and with what technologies
-- Generates a learning plan based on what your project needs
-- Shows progress as **capabilities** ("Your app can now do X")
-- Every lesson is contextualized to YOUR project
-- Exercises = building parts of your project
+Learn by building a complete project from start to finish. The tutor guides you through progressive tasks that teach real-world skills.
+
+**Project Types:**
+- Web Backend API (REST APIs, databases, authentication)
+- Web Frontend (React/Vue, state management, API integration)
+- Full Stack (complete web applications)
+- CLI Tools (argument parsing, configuration, packaging)
+- Libraries (API design, testing, documentation)
+- And more: Mobile, Data Science, Game, DevOps
+
+**Features:**
+- **Progressive Tasks** — Build feature by feature with clear success criteria
+- **Milestones** — Celebrate achievements like "MVP Complete" or "Production Ready"
+- **Capabilities Tracking** — See what your project can do as you progress
+- **Architecture Decisions** — Record and learn from design choices
+- **Hints System** — Get progressive hints when stuck
+- **Project Templates** — Predefined tasks for common project types
+
+See [Project-Based Learning](#project-based-learning) for full details.
 
 ## Commands
 
@@ -209,11 +229,143 @@ When you choose the **Project** context, the tutor:
 | `/tutor:extend` | Go deeper into mastered topics |
 | `/tutor:review [path]` | Review code with educational feedback |
 
+### Project Commands
+
+| Command | Description |
+|---------|-------------|
+| `/tutor:project` | View project dashboard with roadmap and progress |
+| `/tutor:build` | Build the next feature with guided implementation |
+| `/tutor:project roadmap` | View visual project roadmap |
+| `/tutor:project capabilities` | See what your project can do |
+
+### AI Project Suggestions (New in 3.3.0)
+
+| Command | Description |
+|---------|-------------|
+| `/tutor:suggest-project` | Get AI-suggested portfolio-ready projects |
+
+**Usage Examples:**
+- "I want to learn React and REST APIs" → Get projects that teach those skills
+- "I'm preparing for backend developer interviews" → Get relevant portfolio projects
+- "Show me impressive GitHub portfolio projects" → Get high-impact suggestions
+
 ### Curriculum Commands
 
 | Command | Description |
 |---------|-------------|
 | `/tutor:curriculum` | View, generate, or import a curriculum |
+
+## Project-Based Learning
+
+Learn programming and technology skills by building real projects. Instead of isolated lessons, every concept is taught in the context of building something useful.
+
+### Getting Started
+
+```bash
+# Initialize a project
+/tutor:init
+# Select option [9] "Build a Project"
+
+# View your project dashboard
+/tutor:project
+
+# Start building
+/tutor:build
+```
+
+### Project Types
+
+| Type | What You'll Build |
+|------|-------------------|
+| **Web Backend** | REST API with models, CRUD, auth, tests, deployment |
+| **Web Frontend** | SPA with components, state management, API integration |
+| **Full Stack** | Complete web application (frontend + backend) |
+| **CLI Tool** | Command-line utility with arguments, config, packaging |
+| **Library** | Reusable package with API design, tests, documentation |
+| **Mobile** | Mobile app with native integrations |
+| **Data Science** | Data pipeline with analysis and visualization |
+
+### How It Works
+
+1. **Choose what to build** — Describe your project idea
+2. **Select technologies** — Pick languages and frameworks to learn
+3. **Get a roadmap** — System generates tasks organized by phases
+4. **Build progressively** — Each task teaches new concepts
+5. **Track capabilities** — See what your project can do as you progress
+6. **Celebrate milestones** — MVP, Secure, Production Ready, etc.
+
+### Example: Building a REST API
+
+```
+/tutor:init → Project → "Personal Finance API"
+
+Roadmap generated:
+├── Setup (2 tasks)
+│   ├── Project Setup
+│   └── Database Setup
+├── Core Features (4 tasks)
+│   ├── Create Models ← Milestone
+│   ├── CRUD Endpoints ← Milestone
+│   ├── Input Validation
+│   └── Authentication ← Milestone
+├── Testing (2 tasks)
+│   ├── Write Tests
+│   └── Documentation
+└── Deploy (1 task)
+    └── Deployment ← Milestone
+
+/tutor:build
+
+## Next Task: CRUD Endpoints
+
+**Goal**: Basic CRUD operations available via API
+
+**What you'll learn**:
+- HTTP methods (GET, POST, PUT, DELETE)
+- Route handling with FastAPI
+- Response models
+- Error handling
+
+**Success Criteria**:
+- [ ] POST endpoint creates resources
+- [ ] GET endpoint retrieves resources
+- [ ] PUT/PATCH endpoint updates resources
+- [ ] DELETE endpoint removes resources
+```
+
+### Project Commands
+
+| Command | Description |
+|---------|-------------|
+| `/tutor:project` | View project dashboard with roadmap |
+| `/tutor:build` | Work on the next task |
+| `/tutor:project roadmap` | View visual roadmap |
+| `/tutor:project capabilities` | What your project can do now |
+
+### Task Features
+
+Each task includes:
+- **Description** — What needs to be done
+- **Success Criteria** — How to verify completion
+- **Concepts Taught** — What you'll learn
+- **Hints** — Progressive hints if stuck
+- **Code Snippets** — Example patterns for reference
+
+### Architecture Decisions
+
+Record important design choices:
+
+```
+record_architecture_decision(
+    title="Use PostgreSQL for database",
+    context="Need persistent storage with relational support",
+    decision="PostgreSQL with SQLAlchemy ORM",
+    alternatives=["SQLite", "MongoDB"],
+    concepts_learned=["Relational databases", "ORM patterns"]
+)
+```
+
+These decisions become learning material for future reference.
 
 ## Exam Preparation
 
@@ -353,7 +505,7 @@ The tutor adapts content presentation:
 
 ## MCP Tools
 
-The plugin exposes 45+ tools via MCP:
+The plugin exposes 60+ tools via MCP:
 
 <details>
 <summary>View all tools</summary>
@@ -399,10 +551,27 @@ The plugin exposes 45+ tools via MCP:
 - `get_gamification_progress` — Get XP, level, badges
 - `get_current_challenge` — Get weekly challenge
 
-### Project-Based Learning (New in 3.1.0)
-- `get_project_status` — Get project info and milestones
+### Project-Based Learning
+- `initialize_project` — Create a new project with tasks and milestones
+- `add_project_task` — Add custom tasks to the project
+- `start_build_task` — Start working on a task
+- `complete_build_task` — Mark a task as completed
+- `get_task_hint` — Get progressive hints for a task
+- `record_architecture_decision` — Record design decisions
+- `get_project_status` — Get comprehensive project status
 - `get_project_capabilities` — What your project can do now
+- `get_project_roadmap` — Visual roadmap with phases
 - `get_next_build_task` — Next task to build
+- `get_build_log` — Recent project activity
+
+### AI Project Suggestions (New in 3.3.0)
+- `suggest_projects_by_skills` — Get project suggestions based on skills to learn
+- `suggest_projects_by_career` — Get projects for career goals (interviews, etc.)
+- `suggest_portfolio_projects` — Get impressive portfolio projects
+- `get_learnable_skills` — List all skills available across projects
+- `get_career_goals` — List supported career goals
+- `get_project_details` — Get full details about a suggested project
+- `start_suggested_project` — Initialize a project from a suggestion
 
 </details>
 

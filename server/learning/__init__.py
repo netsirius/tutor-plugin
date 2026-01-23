@@ -65,6 +65,30 @@ from .calendar_export import (
     EventType,
 )
 
+# Project-based learning
+from .project_manager import (
+    ProjectManager,
+    ProjectConfig,
+    BuildTask,
+    Milestone,
+    ArchitectureDecision,
+    ProjectPhase,
+    TaskType,
+    TaskDifficulty,
+    ProjectType,
+    get_project_template,
+)
+
+# Project suggestions
+from .project_suggestions import (
+    ProjectSuggester,
+    ProjectSuggestion,
+    SkillCategory,
+    CareerGoal,
+    DifficultyLevel,
+    get_suggester,
+)
+
 __all__ = [
     # Core engine
     "AdaptiveLearningEngine",
@@ -126,4 +150,22 @@ __all__ = [
     "CalendarExport",
     "CalendarProvider",
     "EventType",
+    # Project-based learning
+    "ProjectManager",
+    "ProjectConfig",
+    "BuildTask",
+    "Milestone",
+    "ArchitectureDecision",
+    "ProjectPhase",
+    "TaskType",
+    "TaskDifficulty",
+    "ProjectType",
+    "get_project_template",
+    # Project suggestions
+    "ProjectSuggester",
+    "ProjectSuggestion",
+    "SkillCategory",
+    "CareerGoal",
+    "DifficultyLevel",
+    "get_suggester",
 ]
